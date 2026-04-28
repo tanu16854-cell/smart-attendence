@@ -1,21 +1,23 @@
-const API = "";
+const API = "https://smart-attendence-ek62.onrender.com";
 
+/* ========== ADD STUDENT ========== */
 function addStudent() {
     const id = document.getElementById("id").value;
     const name = document.getElementById("name").value;
 
-    fetch(API + "/student", {
+    fetch(API + "/add-student", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, name })
     })
     .then(res => res.text())
     .then(msg => {
         alert(msg);
-        loadStudents(); // auto refresh
+        loadStudents();
     });
 }
 
+/* ========== LOAD STUDENTS ========== */
 function loadStudents() {
     fetch(API + "/students")
     .then(res => res.json())
@@ -27,9 +29,9 @@ function loadStudents() {
                 <div class="student-card">
                     <span>${s.name}</span>
 
-                    <select id="${s.id}">
-                        <option>Present</option>
-                        <option>Absent</option>
+                    <select id="status-${s.id}">
+                        <option value="Present">Present</option>
+                        <option value="Absent">Absent</option>
                     </select>
 
                     <button onclick="removeStudent('${s.id}')">❌ Remove</button>
@@ -41,18 +43,20 @@ function loadStudents() {
     });
 }
 
+/* ========== MARK ATTENDANCE ========== */
 function submitAttendance() {
     fetch(API + "/students")
     .then(res => res.json())
     .then(data => {
+
         let records = data.map(s => ({
             id: s.id,
-            status: document.getElementById(s.id).value
+            status: document.getElementById(`status-${s.id}`).value
         }));
 
         fetch(API + "/mark-attendance", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ records })
         })
         .then(res => res.text())
@@ -60,31 +64,38 @@ function submitAttendance() {
     });
 }
 
+/* ========== REPORT ========== */
 function loadReport() {
     fetch(API + "/report")
     .then(res => res.json())
     .then(data => {
+
         let html = "<tr><th>ID</th><th>Name</th><th>%</th></tr>";
 
         data.forEach(s => {
             let percent = s.total == 0 ? 0 : (s.present * 100 / s.total).toFixed(2);
-            html += `<tr>
-                <td>${s.id}</td>
-                <td>${s.name}</td>
-                <td>${percent}%</td>
-            </tr>`;
+
+            html += `
+                <tr>
+                    <td>${s.id}</td>
+                    <td>${s.name}</td>
+                    <td>${percent}%</td>
+                </tr>
+            `;
         });
 
         document.getElementById("reportTable").innerHTML = html;
     });
 }
 
+/* ========== CHART ========== */
 function loadChart() {
     fetch(API + "/report")
     .then(res => res.json())
     .then(data => {
+
         let names = data.map(s => s.name);
-        let percent = data.map(s => 
+        let percent = data.map(s =>
             s.total == 0 ? 0 : (s.present * 100 / s.total)
         );
 
@@ -101,21 +112,18 @@ function loadChart() {
     });
 }
 
-window.onload = function() {
-    loadStudents();
-    loadChart();
-};
+/* ========== REMOVE STUDENT ========== */
 function removeStudent(id) {
     fetch(API + "/remove-student", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id })
     })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
             alert(data.message);
-            loadStudents(); // refresh list
+            loadStudents();
         } else {
             alert("Delete failed");
         }
@@ -125,3 +133,9 @@ function removeStudent(id) {
         alert("Server error");
     });
 }
+
+/* ========== ON LOAD ========== */
+window.onload = function () {
+    loadStudents();
+    loadChart();
+};

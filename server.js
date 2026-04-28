@@ -8,39 +8,45 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static("public"));
-db.query(`
-CREATE TABLE IF NOT EXISTS students (
-    id VARCHAR(10) PRIMARY KEY,
-    name VARCHAR(50)
-)
-`);
 
-db.query(`
-CREATE TABLE IF NOT EXISTS attendance (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    student_id VARCHAR(10),
-    date DATE,
-    status VARCHAR(10)
-)
-`);
-/* ========== ROUTES START ========== */
+/* ========== CREATE TABLES SAFELY ========== */
+function initDB() {
+    db.query(`
+        CREATE TABLE IF NOT EXISTS students (
+            id VARCHAR(10) PRIMARY KEY,
+            name VARCHAR(50)
+        )
+    `);
 
-/* Add Student */
+    db.query(`
+        CREATE TABLE IF NOT EXISTS attendance (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            student_id VARCHAR(10),
+            date DATE,
+            status VARCHAR(10)
+        )
+    `);
+}
+
+initDB();
+
+/* ========== ROUTES ========== */
+
 app.post("/add-student", (req, res) => {
     const { id, name } = req.body;
 
-    if (!id || !name) {
-        return res.status(400).send("ID and Name required");
-    }
+    if (!id || !name) return res.status(400).send("ID and Name required");
 
-    const sql = "INSERT INTO students (id, name) VALUES (?, ?)";
-    db.query(sql, [id, name], (err) => {
-        if (err) return res.status(500).send(err);
-        res.send("Student Added!");
-    });
+    db.query(
+        "INSERT INTO students (id, name) VALUES (?, ?)",
+        [id, name],
+        (err) => {
+            if (err) return res.status(500).send(err);
+            res.send("Student Added!");
+        }
+    );
 });
 
-/* Get Students */
 app.get("/students", (req, res) => {
     db.query("SELECT * FROM students", (err, result) => {
         if (err) return res.status(500).send(err);
@@ -48,7 +54,6 @@ app.get("/students", (req, res) => {
     });
 });
 
-/* Remove Student ⭐ NEW */
 app.post("/remove-student", (req, res) => {
     const { id } = req.body;
 
@@ -62,7 +67,6 @@ app.post("/remove-student", (req, res) => {
     });
 });
 
-/* Mark Attendance */
 app.post("/mark-attendance", (req, res) => {
     const { records } = req.body;
 
@@ -76,7 +80,6 @@ app.post("/mark-attendance", (req, res) => {
     res.send("Attendance Marked!");
 });
 
-/* Report */
 app.get("/report", (req, res) => {
     const sql = `
         SELECT s.id, s.name,
@@ -93,7 +96,6 @@ app.get("/report", (req, res) => {
     });
 });
 
-/* Login */
 app.post("/login", (req, res) => {
     const { username, password } = req.body;
 
@@ -104,9 +106,9 @@ app.post("/login", (req, res) => {
     }
 });
 
-/* ========== SERVER START LAST ========== */
+/* ========== SERVER START ========== */
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () =>
-    console.log(`Server running on port ${PORT}`)
-);
+app.listen(PORT, () => {
+    console.log("Server running on port", PORT);
+});
