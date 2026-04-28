@@ -1,13 +1,19 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const path = require("path");
 const db = require("./db");
 
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
+
+/* ========== ROOT ROUTE (IMPORTANT FIX) ========== */
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "login.html"));
+});
 
 /* ========== SAFE DB INIT ========== */
 function initDB() {
@@ -16,10 +22,7 @@ function initDB() {
             id VARCHAR(10) PRIMARY KEY,
             name VARCHAR(50)
         )
-    `, (err) => {
-        if (err) console.log("Students table error:", err);
-        else console.log("Students table ready");
-    });
+    `);
 
     db.query(`
         CREATE TABLE IF NOT EXISTS attendance (
@@ -28,15 +31,12 @@ function initDB() {
             date DATE,
             status VARCHAR(10)
         )
-    `, (err) => {
-        if (err) console.log("Attendance table error:", err);
-        else console.log("Attendance table ready");
-    });
+    `);
 }
 
 initDB();
 
-/* ========== ADD STUDENT (FIXED) ========== */
+/* ========== ADD STUDENT ========== */
 app.post("/add-student", (req, res) => {
     const { id, name } = req.body;
 
@@ -49,12 +49,9 @@ app.post("/add-student", (req, res) => {
         [id, name],
         (err) => {
             if (err) {
-                console.log("ADD STUDENT ERROR:", err);
-                return res.status(500).json({
-                    error: err.code || "DB Error"
-                });
+                console.log(err);
+                return res.status(500).json({ error: err.code });
             }
-
             res.json({ message: "Student Added Successfully" });
         }
     );
@@ -74,7 +71,6 @@ app.post("/remove-student", (req, res) => {
 
     db.query("DELETE FROM students WHERE id = ?", [id], (err) => {
         if (err) {
-            console.log(err);
             return res.status(500).json({ success: false });
         }
 
@@ -89,15 +85,10 @@ app.post("/remove-student", (req, res) => {
 app.post("/mark-attendance", (req, res) => {
     const { records } = req.body;
 
-    if (!records) return res.status(400).send("No records");
-
     records.forEach(r => {
         db.query(
             "INSERT INTO attendance (student_id, date, status) VALUES (?, CURDATE(), ?)",
-            [r.id, r.status],
-            (err) => {
-                if (err) console.log("Attendance error:", err);
-            }
+            [r.id, r.status]
         );
     });
 
