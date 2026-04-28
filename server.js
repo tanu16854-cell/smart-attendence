@@ -9,14 +9,17 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
-/* ========== CREATE TABLES SAFELY ========== */
+/* ========== SAFE DB INIT ========== */
 function initDB() {
     db.query(`
         CREATE TABLE IF NOT EXISTS students (
             id VARCHAR(10) PRIMARY KEY,
             name VARCHAR(50)
         )
-    `);
+    `, (err) => {
+        if (err) console.log("Students table error:", err);
+        else console.log("Students table ready");
+    });
 
     db.query(`
         CREATE TABLE IF NOT EXISTS attendance (
@@ -25,40 +28,55 @@ function initDB() {
             date DATE,
             status VARCHAR(10)
         )
-    `);
+    `, (err) => {
+        if (err) console.log("Attendance table error:", err);
+        else console.log("Attendance table ready");
+    });
 }
 
 initDB();
 
-/* ========== ROUTES ========== */
-
+/* ========== ADD STUDENT (FIXED) ========== */
 app.post("/add-student", (req, res) => {
     const { id, name } = req.body;
 
-    if (!id || !name) return res.status(400).send("ID and Name required");
+    if (!id || !name) {
+        return res.status(400).json({ error: "ID and Name required" });
+    }
 
     db.query(
         "INSERT INTO students (id, name) VALUES (?, ?)",
         [id, name],
         (err) => {
-            if (err) return res.status(500).send(err);
-            res.send("Student Added!");
+            if (err) {
+                console.log("ADD STUDENT ERROR:", err);
+                return res.status(500).json({
+                    error: err.code || "DB Error"
+                });
+            }
+
+            res.json({ message: "Student Added Successfully" });
         }
     );
 });
 
+/* ========== GET STUDENTS ========== */
 app.get("/students", (req, res) => {
     db.query("SELECT * FROM students", (err, result) => {
-        if (err) return res.status(500).send(err);
+        if (err) return res.status(500).json({ error: err });
         res.json(result);
     });
 });
 
+/* ========== REMOVE STUDENT ========== */
 app.post("/remove-student", (req, res) => {
     const { id } = req.body;
 
     db.query("DELETE FROM students WHERE id = ?", [id], (err) => {
-        if (err) return res.status(500).json({ success: false });
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ success: false });
+        }
 
         res.json({
             success: true,
@@ -67,19 +85,26 @@ app.post("/remove-student", (req, res) => {
     });
 });
 
+/* ========== MARK ATTENDANCE ========== */
 app.post("/mark-attendance", (req, res) => {
     const { records } = req.body;
+
+    if (!records) return res.status(400).send("No records");
 
     records.forEach(r => {
         db.query(
             "INSERT INTO attendance (student_id, date, status) VALUES (?, CURDATE(), ?)",
-            [r.id, r.status]
+            [r.id, r.status],
+            (err) => {
+                if (err) console.log("Attendance error:", err);
+            }
         );
     });
 
     res.send("Attendance Marked!");
 });
 
+/* ========== REPORT ========== */
 app.get("/report", (req, res) => {
     const sql = `
         SELECT s.id, s.name,
@@ -91,11 +116,12 @@ app.get("/report", (req, res) => {
     `;
 
     db.query(sql, (err, result) => {
-        if (err) return res.status(500).send(err);
+        if (err) return res.status(500).json({ error: err });
         res.json(result);
     });
 });
 
+/* ========== LOGIN ========== */
 app.post("/login", (req, res) => {
     const { username, password } = req.body;
 
