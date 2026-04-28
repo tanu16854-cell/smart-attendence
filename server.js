@@ -1,5 +1,4 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
 const db = require("./db");
@@ -7,7 +6,7 @@ const db = require("./db");
 const app = express();
 
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 /* ========== ROOT ROUTE ========== */
@@ -15,28 +14,22 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-/* ========== INIT DB (SAFE) ========== */
-function initDB() {
-    db.query(`CREATE TABLE IF NOT EXISTS students (
-        id VARCHAR(10) PRIMARY KEY,
-        name VARCHAR(50)
-    )`, (err) => {
-        if (err) console.log("Students table error:", err.message);
-        else console.log("Students table ready");
-    });
+/* ========== CREATE TABLES ========== */
+db.query(`
+CREATE TABLE IF NOT EXISTS students (
+    id VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(50)
+)
+`);
 
-    db.query(`CREATE TABLE IF NOT EXISTS attendance (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        student_id VARCHAR(10),
-        date DATE,
-        status VARCHAR(10)
-    )`, (err) => {
-        if (err) console.log("Attendance table error:", err.message);
-        else console.log("Attendance table ready");
-    });
-}
-
-initDB();
+db.query(`
+CREATE TABLE IF NOT EXISTS attendance (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(10),
+    date DATE,
+    status VARCHAR(10)
+)
+`);
 
 /* ========== ADD STUDENT ========== */
 app.post("/add-student", (req, res) => {
@@ -47,14 +40,13 @@ app.post("/add-student", (req, res) => {
     }
 
     db.query(
-        "INSERT INTO students (id, name) VALUES (?, ?)",
+        "INSERT INTO students (id, name) VALUES ($1, $2)",
         [id, name],
         (err) => {
             if (err) {
-                console.log("ADD ERROR:", err.message);
+                console.log(err);
                 return res.status(500).json({ error: err.message });
             }
-
             res.json({ message: "Student Added Successfully" });
         }
     );
@@ -63,11 +55,8 @@ app.post("/add-student", (req, res) => {
 /* ========== GET STUDENTS ========== */
 app.get("/students", (req, res) => {
     db.query("SELECT * FROM students", (err, result) => {
-        if (err) {
-            console.log(err);
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(result);
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(result.rows);
     });
 });
 
@@ -75,11 +64,8 @@ app.get("/students", (req, res) => {
 app.post("/remove-student", (req, res) => {
     const { id } = req.body;
 
-    db.query("DELETE FROM students WHERE id = ?", [id], (err) => {
-        if (err) {
-            console.log(err);
-            return res.status(500).json({ success: false, error: err.message });
-        }
+    db.query("DELETE FROM students WHERE id = $1", [id], (err) => {
+        if (err) return res.status(500).json({ success: false });
 
         res.json({
             success: true,
@@ -88,30 +74,18 @@ app.post("/remove-student", (req, res) => {
     });
 });
 
-/* ========== MARK ATTENDANCE (FIXED SAFE LOOP) ========== */
+/* ========== MARK ATTENDANCE ========== */
 app.post("/mark-attendance", (req, res) => {
     const { records } = req.body;
 
-    if (!records || !Array.isArray(records)) {
-        return res.status(400).send("Invalid data");
-    }
-
-    let completed = 0;
-
-    records.forEach((r) => {
+    records.forEach(r => {
         db.query(
-            "INSERT INTO attendance (student_id, date, status) VALUES (?, CURDATE(), ?)",
-            [r.id, r.status],
-            (err) => {
-                if (err) console.log("ATT ERROR:", err.message);
-
-                completed++;
-                if (completed === records.length) {
-                    res.send("Attendance Marked!");
-                }
-            }
+            "INSERT INTO attendance (student_id, date, status) VALUES ($1, CURRENT_DATE, $2)",
+            [r.id, r.status]
         );
     });
+
+    res.send("Attendance Marked!");
 });
 
 /* ========== REPORT ========== */
@@ -126,11 +100,8 @@ app.get("/report", (req, res) => {
     `;
 
     db.query(sql, (err, result) => {
-        if (err) {
-            console.log(err);
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(result);
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(result.rows);
     });
 });
 
