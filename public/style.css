@@ -1,0 +1,120 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Background */
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    text-align: center;
+    color: white;
+}
+
+/* Heading */
+h1 {
+    margin-top: 20px;
+}
+
+/* Glass box */
+.box {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px auto;
+    width: 320px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+/* Inputs */
+input {
+    margin: 8px 0;
+    padding: 10px;
+    width: 90%;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+}
+
+/* Buttons */
+button {
+    padding: 10px;
+    margin-top: 10px;
+    width: 100%;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #45a049;
+}
+
+/* Table */
+table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+    color: white;
+}
+
+table, th, td {
+    border: 1px solid white;
+    padding: 8px;
+}
+
+/* Dropdown */
+select {
+    margin-left: 10px;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+    .box {
+        width: 90%;
+    }
+}
+.student-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+    padding: 10px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+}
+
+.student-card button {
+    background: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+body.dark {
+    background: linear-gradient(135deg, #141E30, #243B55);
+    color: white;
+}
+
+.dark .box {
+    background: rgba(0,0,0,0.4);
+}
+
+.dark button {
+    background: #00c6ff;
+}
+
+.dark table,
+.dark th,
+.dark td {
+    border-color: white;
+}

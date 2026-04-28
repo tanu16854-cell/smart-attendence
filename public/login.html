@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button onclick="toggleTheme()">🌙 Dark Mode</button>
+<div class="box">
+    <h2>Admin Login</h2>
+    <input id="user" placeholder="Username"><br>
+    <input id="pass" type="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+</div>
+
+<script>
+function login() {
+    fetch("http://localhost:3000/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            username: document.getElementById("user").value,
+            password: document.getElementById("pass").value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            localStorage.setItem("login", "true");
+            window.location = "index.html";
+        }else {
+            alert("Wrong credentials");
+        }
+    });
+}
+</script>
+<script>
+    function toggleTheme() {
+        document.body.classList.toggle("dark");
+    }
+    </script>
+</body>
+</html>
