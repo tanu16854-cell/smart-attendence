@@ -8,7 +8,21 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static("public"));
+db.query(`
+CREATE TABLE IF NOT EXISTS students (
+    id VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(50)
+)
+`);
 
+db.query(`
+CREATE TABLE IF NOT EXISTS attendance (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id VARCHAR(10),
+    date DATE,
+    status VARCHAR(10)
+)
+`);
 /* ========== ROUTES START ========== */
 
 /* Add Student */
