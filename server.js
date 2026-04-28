@@ -14,7 +14,7 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-/* ========== CREATE TABLES ========== */
+/* ========== SAFE TABLE INIT ========== */
 db.query(`
 CREATE TABLE IF NOT EXISTS students (
     id VARCHAR(10) PRIMARY KEY,
@@ -44,9 +44,10 @@ app.post("/add-student", (req, res) => {
         [id, name],
         (err) => {
             if (err) {
-                console.log(err);
+                console.log("ADD ERROR:", err.message);
                 return res.status(500).json({ error: err.message });
             }
+
             res.json({ message: "Student Added Successfully" });
         }
     );
@@ -65,7 +66,10 @@ app.post("/remove-student", (req, res) => {
     const { id } = req.body;
 
     db.query("DELETE FROM students WHERE id = $1", [id], (err) => {
-        if (err) return res.status(500).json({ success: false });
+        if (err) {
+            console.log(err.message);
+            return res.status(500).json({ success: false });
+        }
 
         res.json({
             success: true,
@@ -78,10 +82,15 @@ app.post("/remove-student", (req, res) => {
 app.post("/mark-attendance", (req, res) => {
     const { records } = req.body;
 
+    if (!records) return res.status(400).send("No records");
+
     records.forEach(r => {
         db.query(
             "INSERT INTO attendance (student_id, date, status) VALUES ($1, CURRENT_DATE, $2)",
-            [r.id, r.status]
+            [r.id, r.status],
+            (err) => {
+                if (err) console.log("ATTENDANCE ERROR:", err.message);
+            }
         );
     });
 
@@ -116,7 +125,7 @@ app.post("/login", (req, res) => {
     }
 });
 
-/* ========== START SERVER ========== */
+/* ========== SERVER START ========== */
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {

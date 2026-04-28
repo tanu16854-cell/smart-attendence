@@ -1,64 +1,136 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Smart Attendance</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Smart Attendance System</title>
 
-    <!-- Mobile responsive -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Chart.js -->
+    <!-- Chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+        }
+
+        header {
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.08);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        button {
+            background: #22c55e;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #16a34a;
+        }
+
+        .student-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-top: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        canvas {
+            width: 100%;
+        }
+
+    </style>
 </head>
 
 <body>
 
-<h1>Smart Attendance System</h1>
+<header>
+    🎓 SMART ATTENDANCE DASHBOARD
+</header>
 
-<button onclick="toggleTheme()">🌙 Dark Mode</button>
+<div class="container">
 
-<!-- ADD STUDENT -->
-<div class="box">
-    <h2>Add Student</h2>
-    <input type="text" id="id" placeholder="ID">
-    <input type="text" id="name" placeholder="Name">
-    <button onclick="addStudent()">Add</button>
+    <!-- Add Student -->
+    <div class="card">
+        <h3>Add Student</h3>
+        <input id="id" placeholder="Student ID">
+        <input id="name" placeholder="Student Name">
+        <button onclick="addStudent()">Add Student</button>
+    </div>
+
+    <!-- Attendance -->
+    <div class="card">
+        <h3>Mark Attendance</h3>
+        <div id="studentList"></div>
+        <button onclick="submitAttendance()">Submit Attendance</button>
+    </div>
+
+    <!-- Report -->
+    <div class="card">
+        <h3>Report</h3>
+        <button onclick="loadReport()">Load Report</button>
+        <table id="reportTable"></table>
+    </div>
+
+    <!-- Chart -->
+    <div class="card">
+        <h3>Attendance Chart</h3>
+        <canvas id="chart"></canvas>
+    </div>
+
 </div>
 
-<!-- MARK ATTENDANCE -->
-<div class="box">
-    <h2>Mark Attendance</h2>
-    <div id="studentList"></div>
-    <button onclick="submitAttendance()">Submit</button>
-</div>
+<script src="script.js"></script>
 
-<!-- REPORT -->
-<div class="box">
-    <h2>Report</h2>
-    <button onclick="loadReport()">View Report</button>
-    <table id="reportTable" border="1"></table>
-</div>
-
-<!-- CHART -->
-<div class="box">
-    <h2>Attendance Chart</h2>
-    <canvas id="chart"></canvas>
-</div>
-
-<!-- LOGIN CHECK (IMPORTANT) -->
 <script>
 if (!localStorage.getItem("login")) {
     window.location = "login.html";
-}
-</script>
-
-<!-- MAIN SCRIPT -->
-<script src="script.js"></script>
-
-<!-- THEME TOGGLE -->
-<script>
-function toggleTheme() {
-    document.body.classList.toggle("dark");
 }
 </script>
 
