@@ -1,10 +1,10 @@
-const API = "https://your-app-name.onrender.com";
+const API = "";
 
 function addStudent() {
     const id = document.getElementById("id").value;
     const name = document.getElementById("name").value;
 
-    fetch(API + "/add-student", {
+    fetch(API + "/student", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ id, name })
