@@ -2,18 +2,27 @@ const API = "https://smart-attendence-ek62.onrender.com";
 
 /* ========== ADD STUDENT ========== */
 function addStudent() {
-    const id = document.getElementById("id").value;
-    const name = document.getElementById("name").value;
+    const id = document.getElementById("id").value.trim();
+    const name = document.getElementById("name").value.trim();
+
+    if (!id || !name) {
+        alert("ID and Name required");
+        return;
+    }
 
     fetch(API + "/add-student", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, name })
     })
-    .then(res => res.text())
-    .then(msg => {
-        alert(msg);
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || data.error);
         loadStudents();
+    })
+    .catch(err => {
+        console.log(err);
+        alert("Server error");
     });
 }
 
@@ -40,7 +49,8 @@ function loadStudents() {
         });
 
         document.getElementById("studentList").innerHTML = html;
-    });
+    })
+    .catch(err => console.log(err));
 }
 
 /* ========== MARK ATTENDANCE ========== */
@@ -54,13 +64,17 @@ function submitAttendance() {
             status: document.getElementById(`status-${s.id}`).value
         }));
 
-        fetch(API + "/mark-attendance", {
+        return fetch(API + "/mark-attendance", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ records })
-        })
-        .then(res => res.text())
-        .then(msg => alert(msg));
+        });
+    })
+    .then(res => res.text())
+    .then(msg => alert(msg))
+    .catch(err => {
+        console.log(err);
+        alert("Error marking attendance");
     });
 }
 
@@ -85,7 +99,8 @@ function loadReport() {
         });
 
         document.getElementById("reportTable").innerHTML = html;
-    });
+    })
+    .catch(err => console.log(err));
 }
 
 /* ========== CHART ========== */
@@ -109,7 +124,8 @@ function loadChart() {
                 }]
             }
         });
-    });
+    })
+    .catch(err => console.log(err));
 }
 
 /* ========== REMOVE STUDENT ========== */
@@ -121,12 +137,8 @@ function removeStudent(id) {
     })
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            alert(data.message);
-            loadStudents();
-        } else {
-            alert("Delete failed");
-        }
+        alert(data.message || "Done");
+        loadStudents();
     })
     .catch(err => {
         console.log(err);

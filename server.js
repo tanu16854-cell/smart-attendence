@@ -10,28 +10,30 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-/* ========== ROOT ROUTE (IMPORTANT FIX) ========== */
+/* ========== ROOT ROUTE ========== */
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-/* ========== SAFE DB INIT ========== */
+/* ========== INIT DB (SAFE) ========== */
 function initDB() {
-    db.query(`
-        CREATE TABLE IF NOT EXISTS students (
-            id VARCHAR(10) PRIMARY KEY,
-            name VARCHAR(50)
-        )
-    `);
+    db.query(`CREATE TABLE IF NOT EXISTS students (
+        id VARCHAR(10) PRIMARY KEY,
+        name VARCHAR(50)
+    )`, (err) => {
+        if (err) console.log("Students table error:", err.message);
+        else console.log("Students table ready");
+    });
 
-    db.query(`
-        CREATE TABLE IF NOT EXISTS attendance (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            student_id VARCHAR(10),
-            date DATE,
-            status VARCHAR(10)
-        )
-    `);
+    db.query(`CREATE TABLE IF NOT EXISTS attendance (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id VARCHAR(10),
+        date DATE,
+        status VARCHAR(10)
+    )`, (err) => {
+        if (err) console.log("Attendance table error:", err.message);
+        else console.log("Attendance table ready");
+    });
 }
 
 initDB();
@@ -49,9 +51,10 @@ app.post("/add-student", (req, res) => {
         [id, name],
         (err) => {
             if (err) {
-                console.log(err);
-                return res.status(500).json({ error: err.code });
+                console.log("ADD ERROR:", err.message);
+                return res.status(500).json({ error: err.message });
             }
+
             res.json({ message: "Student Added Successfully" });
         }
     );
@@ -60,7 +63,10 @@ app.post("/add-student", (req, res) => {
 /* ========== GET STUDENTS ========== */
 app.get("/students", (req, res) => {
     db.query("SELECT * FROM students", (err, result) => {
-        if (err) return res.status(500).json({ error: err });
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ error: err.message });
+        }
         res.json(result);
     });
 });
@@ -71,7 +77,8 @@ app.post("/remove-student", (req, res) => {
 
     db.query("DELETE FROM students WHERE id = ?", [id], (err) => {
         if (err) {
-            return res.status(500).json({ success: false });
+            console.log(err);
+            return res.status(500).json({ success: false, error: err.message });
         }
 
         res.json({
@@ -81,18 +88,30 @@ app.post("/remove-student", (req, res) => {
     });
 });
 
-/* ========== MARK ATTENDANCE ========== */
+/* ========== MARK ATTENDANCE (FIXED SAFE LOOP) ========== */
 app.post("/mark-attendance", (req, res) => {
     const { records } = req.body;
 
-    records.forEach(r => {
+    if (!records || !Array.isArray(records)) {
+        return res.status(400).send("Invalid data");
+    }
+
+    let completed = 0;
+
+    records.forEach((r) => {
         db.query(
             "INSERT INTO attendance (student_id, date, status) VALUES (?, CURDATE(), ?)",
-            [r.id, r.status]
+            [r.id, r.status],
+            (err) => {
+                if (err) console.log("ATT ERROR:", err.message);
+
+                completed++;
+                if (completed === records.length) {
+                    res.send("Attendance Marked!");
+                }
+            }
         );
     });
-
-    res.send("Attendance Marked!");
 });
 
 /* ========== REPORT ========== */
@@ -107,7 +126,10 @@ app.get("/report", (req, res) => {
     `;
 
     db.query(sql, (err, result) => {
-        if (err) return res.status(500).json({ error: err });
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ error: err.message });
+        }
         res.json(result);
     });
 });
@@ -123,7 +145,7 @@ app.post("/login", (req, res) => {
     }
 });
 
-/* ========== SERVER START ========== */
+/* ========== START SERVER ========== */
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
