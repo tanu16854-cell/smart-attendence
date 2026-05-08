@@ -2,12 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const db = require("./db");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 
 const app = express();
-
-const SECRET = "smart_erp_secret_key";
 
 /* ============================= */
 /* MIDDLEWARE */
@@ -16,183 +12,403 @@ const SECRET = "smart_erp_secret_key";
 app.use(cors());
 app.use(express.json());
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(
+    path.join(__dirname, "public")
+));
 
 /* ============================= */
-/* ROOT */
+/* ROOT ROUTE */
 /* ============================= */
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "login.html"));
-});
 
-/* ============================= */
-/* TABLES */
-/* ============================= */
-
-db.query(`
-CREATE TABLE IF NOT EXISTS students(
-    id VARCHAR(20) PRIMARY KEY,
-    name VARCHAR(100)
-);
-`);
-
-db.query(`
-CREATE TABLE IF NOT EXISTS attendance(
-    id SERIAL PRIMARY KEY,
-    student_id VARCHAR(20),
-    date DATE,
-    status VARCHAR(20)
-);
-`);
-
-db.query(`
-CREATE TABLE IF NOT EXISTS teachers(
-    id SERIAL PRIMARY KEY,
-    teacher_name VARCHAR(100),
-    email VARCHAR(100),
-    password VARCHAR(200),
-    subject VARCHAR(100),
-    role VARCHAR(20) DEFAULT 'teacher'
-);
-`);
-
-/* ============================= */
-/* REGISTER TEACHER (SECURE) */
-/* ============================= */
-
-app.post("/register-teacher", async (req, res) => {
-
-    const { teacher_name, email, password, subject } = req.body;
-
-    const hash = await bcrypt.hash(password, 10);
-
-    db.query(
-        `INSERT INTO teachers (teacher_name,email,password,subject)
-         VALUES ($1,$2,$3,$4)`,
-        [teacher_name, email, hash, subject],
-        (err) => {
-            if (err) return res.status(500).json({ error: err.message });
-
-            res.json({ message: "Teacher Registered Successfully" });
-        }
+    res.sendFile(
+        path.join(__dirname, "public", "login.html")
     );
 });
 
 /* ============================= */
-/* LOGIN (JWT + BCRYPT) */
+/* DATABASE TABLES */
+/* ============================= */
+
+db.query(`
+
+CREATE TABLE IF NOT EXISTS students(
+
+    id VARCHAR(20) PRIMARY KEY,
+
+    name VARCHAR(100)
+
+)
+
+`);
+
+db.query(`
+
+CREATE TABLE IF NOT EXISTS attendance(
+
+    id SERIAL PRIMARY KEY,
+
+    student_id VARCHAR(20),
+
+    date DATE,
+
+    status VARCHAR(20)
+
+)
+
+`);
+
+/* ============================= */
+/* TEACHERS TABLE */
+/* ============================= */
+
+db.query(`
+
+CREATE TABLE IF NOT EXISTS teachers(
+
+    id SERIAL PRIMARY KEY,
+
+    teacher_name VARCHAR(100),
+
+    subject VARCHAR(100),
+
+    class_name VARCHAR(100)
+
+)
+
+`);
+
+/* ============================= */
+/* LOGIN API */
 /* ============================= */
 
 app.post("/login", (req, res) => {
 
     const { username, password } = req.body;
 
-    db.query(
-        `SELECT * FROM teachers WHERE email=$1`,
-        [username],
-        (err, result) => {
+    if(
+        username === "admin" &&
+        password === "1234"
+    ){
 
-            if (err) return res.status(500).json({ error: err.message });
+        res.json({
+            success:true
+        });
 
-            if (result.rows.length === 0)
-                return res.json({ success: false });
+    }else{
 
-            const teacher = result.rows[0];
-
-            // TEMP: plain password check
-            if (teacher.password !== password) {
-                return res.json({ success: false });
-            }
-
-            res.json({
-                success: true,
-                teacher
-            });
-        }
-    );
+        res.json({
+            success:false
+        });
+    }
 });
 
 /* ============================= */
-/* STUDENT APIs */
+/* ADD STUDENT */
 /* ============================= */
 
 app.post("/add-student", (req, res) => {
 
     const { id, name } = req.body;
 
-    db.query(
-        `INSERT INTO students(id,name) VALUES($1,$2)`,
-        [id, name],
-        (err) => {
-            if (err) return res.status(500).json({ error: err.message });
+    if(!id || !name){
 
-            res.json({ message: "Student Added" });
+        return res.status(400).json({
+            error:"ID and Name required"
+        });
+    }
+
+    db.query(
+
+        "INSERT INTO students(id,name) VALUES($1,$2)",
+
+        [id,name],
+
+        (err)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    error:err.message
+                });
+            }
+
+            res.json({
+                message:"Student Added Successfully"
+            });
         }
     );
 });
+
+/* ============================= */
+/* GET STUDENTS */
+/* ============================= */
 
 app.get("/students", (req, res) => {
 
-    db.query(`SELECT * FROM students`, (err, result) => {
-
-        if (err) return res.status(500).json({ error: err.message });
-
-        res.json(result.rows);
-    });
-});
-
-app.post("/remove-student", (req, res) => {
-
     db.query(
-        `DELETE FROM students WHERE id=$1`,
-        [req.body.id],
-        (err) => {
-            if (err) return res.status(500).json({ success: false });
 
-            res.json({ success: true });
+        "SELECT * FROM students ORDER BY name",
+
+        (err,result)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    error:err.message
+                });
+            }
+
+            res.json(result.rows);
         }
     );
 });
 
 /* ============================= */
-/* ATTENDANCE */
+/* REMOVE STUDENT */
 /* ============================= */
 
-app.post("/mark-attendance", (req, res) => {
+app.post("/remove-student", (req,res)=>{
 
-    const { records } = req.body;
+    const { id } = req.body;
 
-    records.forEach(r => {
+    db.query(
 
-        db.query(
-            `INSERT INTO attendance(student_id,date,status)
-             VALUES($1,$2,$3)`,
-            [r.id, r.date, r.status]
-        );
-    });
+        "DELETE FROM students WHERE id=$1",
 
-    res.send("Attendance Saved");
+        [id],
+
+        (err)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    success:false
+                });
+            }
+
+            res.json({
+
+                success:true,
+
+                message:"Student Removed Successfully"
+            });
+        }
+    );
 });
 
 /* ============================= */
-/* REPORT */
+/* ADD TEACHER */
 /* ============================= */
 
-app.get("/report", (req, res) => {
+app.post("/add-teacher",(req,res)=>{
 
-    db.query(`
-        SELECT
-        students.id,
-        students.name,
-        SUM(CASE WHEN attendance.status='Present' THEN 1 ELSE 0 END) as present,
-        SUM(CASE WHEN attendance.status='Absent' THEN 1 ELSE 0 END) as absent
-        FROM students
-        LEFT JOIN attendance
-        ON students.id=attendance.student_id
-        GROUP BY students.id
-    `, (err, result) => {
+    const {
+        teacher_name,
+        subject,
+        class_name
+    } = req.body;
 
-        if (err) return res.status(500).json({ error: err.message });
+    if(
+        !teacher_name ||
+        !subject ||
+        !class_name
+    ){
+
+        return res.status(400).json({
+            error:"All fields required"
+        });
+    }
+
+    db.query(
+
+        `
+
+        INSERT INTO teachers
+        (teacher_name,subject,class_name)
+
+        VALUES($1,$2,$3)
+
+        `,
+
+        [
+            teacher_name,
+            subject,
+            class_name
+        ],
+
+        (err)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    error:err.message
+                });
+            }
+
+            res.json({
+                message:"Teacher Added Successfully"
+            });
+        }
+    );
+});
+
+/* ============================= */
+/* GET TEACHERS */
+/* ============================= */
+
+app.get("/teachers",(req,res)=>{
+
+    db.query(
+
+        "SELECT * FROM teachers ORDER BY id DESC",
+
+        (err,result)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    error:err.message
+                });
+            }
+
+            res.json(result.rows);
+        }
+    );
+});
+
+/* ============================= */
+/* DELETE TEACHER */
+/* ============================= */
+
+app.post("/remove-teacher",(req,res)=>{
+
+    const { id } = req.body;
+
+    db.query(
+
+        "DELETE FROM teachers WHERE id=$1",
+
+        [id],
+
+        (err)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    error:err.message
+                });
+            }
+
+            res.json({
+                message:"Teacher Removed"
+            });
+        }
+    );
+});
+
+/* ============================= */
+/* MARK ATTENDANCE */
+/* ============================= */
+
+app.post("/mark-attendance", (req,res)=>{
+
+    const { records } = req.body;
+
+    if(!records){
+
+        return res.status(400).send(
+            "No Attendance Records"
+        );
+    }
+
+    records.forEach(r=>{
+
+        db.query(
+
+            `
+
+            INSERT INTO attendance
+            (student_id,date,status)
+
+            VALUES($1,$2,$3)
+
+            `,
+
+            [
+                r.id,
+                r.date,
+                r.status
+            ],
+
+            (err)=>{
+
+                if(err){
+
+                    console.log(err.message);
+                }
+            }
+        );
+    });
+
+    res.send(
+        "Attendance Marked Successfully"
+    );
+});
+
+/* ============================= */
+/* OVERALL REPORT */
+/* ============================= */
+
+app.get("/report",(req,res)=>{
+
+    const sql = `
+
+    SELECT
+
+    students.id,
+
+    students.name,
+
+    SUM(
+        CASE
+        WHEN attendance.status='Present'
+        THEN 1
+        ELSE 0
+        END
+    ) AS present,
+
+    SUM(
+        CASE
+        WHEN attendance.status='Absent'
+        THEN 1
+        ELSE 0
+        END
+    ) AS absent,
+
+    COUNT(attendance.id) AS total
+
+    FROM students
+
+    LEFT JOIN attendance
+
+    ON students.id=attendance.student_id
+
+    GROUP BY students.id
+
+    ORDER BY students.name
+
+    `;
+
+    db.query(sql,(err,result)=>{
+
+        if(err){
+
+            return res.status(500).json({
+                error:err.message
+            });
+        }
 
         res.json(result.rows);
     });
@@ -202,29 +418,69 @@ app.get("/report", (req, res) => {
 /* MONTHLY REPORT */
 /* ============================= */
 
-app.get("/monthly-report/:month", (req, res) => {
+app.get("/monthly-report/:month",(req,res)=>{
 
     const month = req.params.month;
 
-    db.query(`
-        SELECT attendance.date, attendance.student_id, students.name, attendance.status
-        FROM attendance
-        JOIN students ON students.id=attendance.student_id
-        WHERE TO_CHAR(attendance.date,'YYYY-MM')=$1
-    `, [month], (err, result) => {
+    const sql = `
 
-        if (err) return res.status(500).json({ error: err.message });
+    SELECT
 
-        res.json(result.rows);
-    });
+    attendance.date,
+
+    attendance.student_id,
+
+    students.name,
+
+    attendance.status
+
+    FROM attendance
+
+    JOIN students
+
+    ON students.id =
+    attendance.student_id
+
+    WHERE TO_CHAR(
+        attendance.date,
+        'YYYY-MM'
+    ) = $1
+
+    ORDER BY attendance.date DESC
+
+    `;
+
+    db.query(
+
+        sql,
+
+        [month],
+
+        (err,result)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    error:err.message
+                });
+            }
+
+            res.json(result.rows);
+        }
+    );
 });
 
 /* ============================= */
-/* SERVER */
+/* SERVER START */
 /* ============================= */
 
-const PORT = process.env.PORT || 3000;
+const PORT =
+process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log("Server running on port", PORT);
+app.listen(PORT, ()=>{
+
+    console.log(
+        "ERP Server Running On Port",
+        PORT
+    );
 });
