@@ -1,23 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
+
     <title>Smart ERP Attendance System</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
 <!-- LOGIN CHECK -->
+
 <script>
-if (!localStorage.getItem("login")) {
+
+if(!localStorage.getItem("login")){
+
     window.location.href = "login.html";
 }
+
 </script>
 
 <!-- SIDEBAR -->
+
 <div class="sidebar">
 
     <div class="logo">
@@ -25,6 +33,7 @@ if (!localStorage.getItem("login")) {
     </div>
 
     <ul>
+
         <li onclick="showSection('dashboard')">
             🏠 Dashboard
         </li>
@@ -44,45 +53,68 @@ if (!localStorage.getItem("login")) {
         <li onclick="logout()">
             🚪 Logout
         </li>
+
     </ul>
 
 </div>
 
-<!-- MAIN CONTENT -->
+<!-- MAIN -->
+
 <div class="main-content">
 
     <!-- HEADER -->
+
     <div class="erp-header">
 
         <div>
-            <h1>Smart ERP Attendance System</h1>
-            <p>School / College Management Dashboard</p>
+
+            <h1>
+                Smart ERP Attendance System
+            </h1>
+
+            <p>
+                Professional College ERP Dashboard
+            </p>
+
         </div>
 
         <div class="datetime-box">
+
             <div id="liveDate"></div>
+
             <div id="liveTime"></div>
+
         </div>
 
     </div>
 
     <!-- DASHBOARD -->
-    <div id="dashboard" class="section active-section">
+
+    <div id="dashboard"
+         class="section active-section">
 
         <div class="box">
 
-            <h2>Add Student</h2>
+            <h2>
+                ➕ Add Student
+            </h2>
 
-            <input type="text"
-                   id="id"
-                   placeholder="Enter Student ID">
+            <input
+                type="text"
+                id="id"
+                placeholder="Enter Student ID"
+            >
 
-            <input type="text"
-                   id="name"
-                   placeholder="Enter Student Name">
+            <input
+                type="text"
+                id="name"
+                placeholder="Enter Student Name"
+            >
 
             <button onclick="addStudent()">
+
                 Add Student
+
             </button>
 
         </div>
@@ -90,49 +122,92 @@ if (!localStorage.getItem("login")) {
     </div>
 
     <!-- TEACHER PANEL -->
-    <div id="teacher" class="section">
+
+    <div id="teacher"
+         class="section">
 
         <div class="box">
 
-            <h2>👨‍🏫 Teacher Panel</h2>
+            <h2>
+                👨‍🏫 Teacher Panel
+            </h2>
 
-            <input type="text"
-                   placeholder="Teacher Name">
+            <div class="teacher-grid">
 
-            <input type="text"
-                   placeholder="Subject">
+                <div class="teacher-card">
 
-            <input type="text"
-                   placeholder="Class">
+                    <h3>
+                        Teacher Name
+                    </h3>
 
-            <button>
-                Add Teacher
-            </button>
+                    <p>
+                        Rahul Sharma
+                    </p>
+
+                </div>
+
+                <div class="teacher-card">
+
+                    <h3>
+                        Subject
+                    </h3>
+
+                    <p>
+                        Computer Science
+                    </p>
+
+                </div>
+
+                <div class="teacher-card">
+
+                    <h3>
+                        Class
+                    </h3>
+
+                    <p>
+                        BCA Final Year
+                    </p>
+
+                </div>
+
+            </div>
 
         </div>
 
     </div>
 
     <!-- ATTENDANCE -->
-    <div id="attendance" class="section">
+
+    <div id="attendance"
+         class="section">
 
         <div class="box">
 
-            <h2>📅 Monthly Attendance</h2>
+            <h2>
+                📅 Daily Attendance
+            </h2>
 
             <div class="date-box">
 
-                <label>Select Attendance Date</label>
+                <label>
 
-                <input type="date"
-                       id="attendanceDate">
+                    Select Attendance Date
+
+                </label>
+
+                <input
+                    type="date"
+                    id="attendanceDate"
+                >
 
             </div>
 
             <div id="studentList"></div>
 
             <button onclick="submitAttendance()">
+
                 Submit Attendance
+
             </button>
 
         </div>
@@ -140,28 +215,43 @@ if (!localStorage.getItem("login")) {
     </div>
 
     <!-- REPORT -->
-    <div id="report" class="section">
+
+    <div id="report"
+         class="section">
 
         <div class="box">
 
-            <h2>📊 Monthly Attendance Report</h2>
+            <h2>
+                📊 Monthly Attendance Report
+            </h2>
 
-            <input type="month" id="reportMonth">
+            <input
+                type="month"
+                id="reportMonth"
+            >
 
             <button onclick="loadMonthlyReport()">
-                View Monthly Report
+
+                View Report
+
             </button>
 
-            <table id="reportTable">
+            <div class="table-wrapper">
 
-                <tr>
-                    <th>Date</th>
-                    <th>Student ID</th>
-                    <th>Name</th>
-                    <th>Status</th>
-                </tr>
+                <table id="reportTable">
 
-            </table>
+                    <tr>
+
+                        <th>Date</th>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Status</th>
+
+                    </tr>
+
+                </table>
+
+            </div>
 
         </div>
 
@@ -173,41 +263,14 @@ if (!localStorage.getItem("login")) {
 
 <script>
 
-/* ERP SECTION SWITCH */
-
-function showSection(id){
-
-    document.querySelectorAll(".section")
-    .forEach(sec=>{
-        sec.classList.remove("active-section");
-    });
-
-    document.getElementById(id)
-    .classList.add("active-section");
-}
-
-/* LIVE DATE & TIME */
-
-function updateDateTime(){
-
-    const now = new Date();
-
-    document.getElementById("liveDate").innerHTML =
-        now.toDateString();
-
-    document.getElementById("liveTime").innerHTML =
-        now.toLocaleTimeString();
-}
-
-setInterval(updateDateTime,1000);
-
-updateDateTime();
-
 /* LOGOUT */
 
 function logout(){
+
     localStorage.removeItem("login");
-    window.location.href = "login.html";
+
+    window.location.href =
+    "login.html";
 }
 
 </script>

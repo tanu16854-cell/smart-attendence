@@ -1,109 +1,121 @@
-const API = "https://smart-attendence-ek62.onrender.com";
+const API =
+"https://smart-attendence-ek62.onrender.com";
 
-/* ============================= */
-/* ERP SECTION SWITCH */
-/* ============================= */
+/* ========================= */
+/* SECTION SWITCH */
+/* ========================= */
 
 function showSection(id){
 
-    document.querySelectorAll(".section")
+    document
+    .querySelectorAll(".section")
     .forEach(sec=>{
-        sec.classList.remove("active-section");
+
+        sec.classList.remove(
+            "active-section"
+        );
     });
 
-    document.getElementById(id)
-    .classList.add("active-section");
+    document
+    .getElementById(id)
+    .classList.add(
+        "active-section"
+    );
 }
 
-/* ============================= */
-/* LIVE DATE & TIME */
-/* ============================= */
+/* ========================= */
+/* DATE & TIME */
+/* ========================= */
 
 function updateDateTime(){
 
     const now = new Date();
 
-    document.getElementById("liveDate").innerHTML =
-        now.toDateString();
+    document.getElementById(
+        "liveDate"
+    ).innerHTML =
+    now.toDateString();
 
-    document.getElementById("liveTime").innerHTML =
-        now.toLocaleTimeString();
+    document.getElementById(
+        "liveTime"
+    ).innerHTML =
+    now.toLocaleTimeString();
 }
 
 setInterval(updateDateTime,1000);
 
 updateDateTime();
 
-/* ============================= */
+/* ========================= */
 /* ADD STUDENT */
-/* ============================= */
+/* ========================= */
 
-function addStudent() {
+function addStudent(){
 
-    const id = document.getElementById("id").value.trim();
+    const id =
+    document.getElementById("id")
+    .value.trim();
 
-    const name = document.getElementById("name").value.trim();
+    const name =
+    document.getElementById("name")
+    .value.trim();
 
-    if (!id || !name) {
+    if(!id || !name){
 
-        alert("Student ID and Name required");
+        alert(
+            "Enter Student ID & Name"
+        );
 
         return;
     }
 
-    fetch(API + "/add-student", {
+    fetch(API + "/add-student",{
 
-        method: "POST",
+        method:"POST",
 
-        headers: {
-            "Content-Type": "application/json"
+        headers:{
+            "Content-Type":"application/json"
         },
 
-        body: JSON.stringify({
+        body:JSON.stringify({
             id,
             name
         })
-
     })
 
-    .then(res => res.json())
+    .then(res=>res.json())
 
-    .then(data => {
+    .then(data=>{
 
-        alert(data.message || data.error);
-
-        document.getElementById("id").value = "";
-
-        document.getElementById("name").value = "";
+        alert(data.message);
 
         loadStudents();
 
-        loadChart();
-    })
+        document.getElementById(
+            "id"
+        ).value = "";
 
-    .catch(err => {
-
-        console.log(err);
-
-        alert("Server Error");
+        document.getElementById(
+            "name"
+        ).value = "";
     });
 }
 
-/* ============================= */
+/* ========================= */
 /* LOAD STUDENTS */
-/* ============================= */
+/* ========================= */
 
-function loadStudents() {
+function loadStudents(){
 
     fetch(API + "/students")
 
-    .then(res => res.json())
+    .then(res=>res.json())
 
-    .then(data => {
+    .then(data=>{
 
         let html = "";
 
-        data.forEach(s => {
+        data.forEach(s=>{
 
             html += `
 
@@ -116,17 +128,20 @@ function loadStudents() {
                 <select id="status-${s.id}">
 
                     <option value="Present">
-                        ✅ Present
+                        Present
                     </option>
 
                     <option value="Absent">
-                        ❌ Absent
+                        Absent
                     </option>
 
                 </select>
 
-                <button onclick="removeStudent('${s.id}')">
+                <button
+                onclick="removeStudent('${s.id}')">
+
                     Remove
+
                 </button>
 
             </div>
@@ -134,90 +149,87 @@ function loadStudents() {
             `;
         });
 
-        document.getElementById("studentList").innerHTML = html;
-    })
-
-    .catch(err => {
-
-        console.log(err);
+        document.getElementById(
+            "studentList"
+        ).innerHTML = html;
     });
 }
 
-/* ============================= */
+/* ========================= */
 /* MARK ATTENDANCE */
-/* ============================= */
+/* ========================= */
 
-function submitAttendance() {
+function submitAttendance(){
 
     const selectedDate =
-        document.getElementById("attendanceDate").value;
+    document.getElementById(
+        "attendanceDate"
+    ).value;
 
-    if (!selectedDate) {
+    if(!selectedDate){
 
-        alert("Please select attendance date");
+        alert(
+            "Select Attendance Date"
+        );
 
         return;
     }
 
     fetch(API + "/students")
 
-    .then(res => res.json())
+    .then(res=>res.json())
 
-    .then(data => {
+    .then(data=>{
 
-        let records = data.map(s => ({
+        let records =
+        data.map(s=>({
 
-            id: s.id,
+            id:s.id,
 
             status:
-            document.getElementById(`status-${s.id}`).value,
+            document.getElementById(
+            `status-${s.id}`
+            ).value,
 
-            date: selectedDate
-
+            date:selectedDate
         }));
 
-        return fetch(API + "/mark-attendance", {
+        return fetch(
+            API + "/mark-attendance",
+            {
 
-            method: "POST",
+                method:"POST",
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+                headers:{
+                    "Content-Type":
+                    "application/json"
+                },
 
-            body: JSON.stringify({
-                records
-            })
-        });
+                body:JSON.stringify({
+                    records
+                })
+            }
+        );
     })
 
-    .then(res => res.text())
+    .then(res=>res.text())
 
-    .then(msg => {
+    .then(msg=>{
 
         alert(msg);
-
-        loadChart();
-    })
-
-    .catch(err => {
-
-        console.log(err);
-
-        alert("Attendance Error");
     });
 }
 
-/* ============================= */
-/* LOAD REPORT */
-/* ============================= */
-/* ============================= */
+/* ========================= */
 /* MONTHLY REPORT */
-/* ============================= */
+/* ========================= */
 
-function loadMonthlyReport() {
+function loadMonthlyReport(){
 
     const month =
-    document.getElementById("reportMonth").value;
+    document.getElementById(
+        "reportMonth"
+    ).value;
 
     if(!month){
 
@@ -226,24 +238,28 @@ function loadMonthlyReport() {
         return;
     }
 
-    fetch(API + "/monthly-report/" + month)
+    fetch(
+        API + "/monthly-report/" + month
+    )
 
-    .then(res => res.json())
+    .then(res=>res.json())
 
-    .then(data => {
+    .then(data=>{
 
         let html = `
 
         <tr>
+
             <th>Date</th>
             <th>ID</th>
             <th>Name</th>
             <th>Status</th>
+
         </tr>
 
         `;
 
-        data.forEach(r => {
+        data.forEach(r=>{
 
             html += `
 
@@ -254,156 +270,70 @@ function loadMonthlyReport() {
                     .toLocaleDateString()}
                 </td>
 
-                <td>${r.student_id}</td>
+                <td>
+                    ${r.student_id}
+                </td>
 
-                <td>${r.name}</td>
+                <td>
+                    ${r.name}
+                </td>
 
-                <td>${r.status}</td>
+                <td>
+                    ${r.status}
+                </td>
 
             </tr>
 
             `;
         });
 
-        document.getElementById("reportTable")
-        .innerHTML = html;
-    })
-
-    .catch(err => {
-
-        console.log(err);
-
-        alert("Report Error");
+        document.getElementById(
+            "reportTable"
+        ).innerHTML = html;
     });
 }
 
-/* ============================= */
-/* LOAD CHART */
-/* ============================= */
-
-function loadChart() {
-
-    fetch(API + "/report")
-
-    .then(res => res.json())
-
-    .then(data => {
-
-        let names =
-        data.map(s => s.name);
-
-        let percent =
-        data.map(s =>
-
-            s.total == 0
-            ? 0
-            : (s.present * 100 / s.total)
-        );
-
-        const ctx =
-        document.getElementById("chart");
-
-        if(window.attendanceChart){
-
-            window.attendanceChart.destroy();
-        }
-
-        window.attendanceChart =
-        new Chart(ctx, {
-
-            type: "bar",
-
-            data: {
-
-                labels: names,
-
-                datasets: [{
-
-                    label: "Attendance Percentage",
-
-                    data: percent,
-
-                    borderWidth: 1
-                }]
-            },
-
-            options: {
-
-                responsive: true,
-
-                scales: {
-
-                    y: {
-
-                        beginAtZero: true,
-
-                        max: 100
-                    }
-                }
-            }
-        });
-    })
-
-    .catch(err => {
-
-        console.log(err);
-    });
-}
-
-/* ============================= */
+/* ========================= */
 /* REMOVE STUDENT */
-/* ============================= */
+/* ========================= */
 
-function removeStudent(id) {
+function removeStudent(id){
 
-    fetch(API + "/remove-student", {
+    fetch(API + "/remove-student",{
 
-        method: "POST",
+        method:"POST",
 
-        headers: {
-            "Content-Type": "application/json"
+        headers:{
+            "Content-Type":"application/json"
         },
 
-        body: JSON.stringify({
-            id
-        })
+        body:JSON.stringify({id})
     })
 
-    .then(res => res.json())
+    .then(res=>res.json())
 
-    .then(data => {
+    .then(data=>{
 
-        alert(data.message || "Student Removed");
+        alert(data.message);
 
         loadStudents();
-
-        loadChart();
-    })
-
-    .catch(err => {
-
-        console.log(err);
-
-        alert("Delete Error");
     });
 }
 
-/* ============================= */
-/* ERP DASHBOARD LOAD */
-/* ============================= */
+/* ========================= */
+/* WINDOW LOAD */
+/* ========================= */
 
-window.onload = function () {
+window.onload = function(){
 
     loadStudents();
 
-    loadChart();
-
-    loadReport();
-
-    const today = new Date()
+    const today =
+    new Date()
     .toISOString()
     .split("T")[0];
 
-    document.getElementById("attendanceDate").value =
-    today;
+    document.getElementById(
+        "attendanceDate"
+    ).value = today;
 };
