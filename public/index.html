@@ -79,16 +79,33 @@
 
         </div>
 
-        <!-- ANALYTICS -->
-        <div class="box">
+       <!-- REPORT -->
+<div id="report" class="section">
 
-            <h2>📈 Attendance Analytics</h2>
+    <div class="box">
 
-            <canvas id="chart"></canvas>
+        <h2>📊 Monthly Attendance Report</h2>
 
-        </div>
+        <input type="month" id="reportMonth">
+
+        <button onclick="loadMonthlyReport()">
+            View Monthly Report
+        </button>
+
+        <table id="reportTable">
+
+            <tr>
+                <th>Date</th>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Status</th>
+            </tr>
+
+        </table>
 
     </div>
+
+</div>
 
     <!-- TEACHER PANEL -->
     <div id="teacher" class="section">

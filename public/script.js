@@ -210,10 +210,23 @@ function submitAttendance() {
 /* ============================= */
 /* LOAD REPORT */
 /* ============================= */
+/* ============================= */
+/* MONTHLY REPORT */
+/* ============================= */
 
-function loadReport() {
+function loadMonthlyReport() {
 
-    fetch(API + "/report")
+    const month =
+    document.getElementById("reportMonth").value;
+
+    if(!month){
+
+        alert("Select Month");
+
+        return;
+    }
+
+    fetch(API + "/monthly-report/" + month)
 
     .then(res => res.json())
 
@@ -222,41 +235,45 @@ function loadReport() {
         let html = `
 
         <tr>
+            <th>Date</th>
             <th>ID</th>
             <th>Name</th>
-            <th>Attendance %</th>
+            <th>Status</th>
         </tr>
 
         `;
 
-        data.forEach(s => {
-
-            let percent =
-            s.total == 0
-            ? 0
-            : (s.present * 100 / s.total).toFixed(2);
+        data.forEach(r => {
 
             html += `
 
             <tr>
 
-                <td>${s.id}</td>
+                <td>
+                    ${new Date(r.date)
+                    .toLocaleDateString()}
+                </td>
 
-                <td>${s.name}</td>
+                <td>${r.student_id}</td>
 
-                <td>${percent}%</td>
+                <td>${r.name}</td>
+
+                <td>${r.status}</td>
 
             </tr>
 
             `;
         });
 
-        document.getElementById("reportTable").innerHTML = html;
+        document.getElementById("reportTable")
+        .innerHTML = html;
     })
 
     .catch(err => {
 
         console.log(err);
+
+        alert("Report Error");
     });
 }
 

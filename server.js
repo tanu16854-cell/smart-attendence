@@ -131,3 +131,42 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log("Server running on port", PORT);
 });
+/* ========== MONTHLY REPORT ========== */
+
+app.get("/monthly-report/:month", (req, res) => {
+
+    const month = req.params.month;
+
+    const sql = `
+
+    SELECT
+    attendance.date,
+    attendance.student_id,
+    students.name,
+    attendance.status
+
+    FROM attendance
+
+    JOIN students
+    ON students.id = attendance.student_id
+
+    WHERE TO_CHAR(attendance.date, 'YYYY-MM') = $1
+
+    ORDER BY attendance.date DESC
+
+    `;
+
+    db.query(sql, [month], (err, result) => {
+
+        if(err){
+
+            console.log(err);
+
+            return res.status(500).json({
+                error: err.message
+            });
+        }
+
+        res.json(result.rows);
+    });
+});
