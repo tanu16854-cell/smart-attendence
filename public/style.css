@@ -1,4 +1,5 @@
 /* RESET */
+
 *{
     margin:0;
     padding:0;
@@ -6,184 +7,399 @@
 }
 
 /* BODY */
+
 body{
-    font-family: Arial, sans-serif;
+    font-family:Arial,sans-serif;
 
     background:
-    linear-gradient(rgba(0,0,0,0.7),
-    rgba(0,0,0,0.7)),
+    linear-gradient(rgba(0,0,0,0.75),
+    rgba(0,0,0,0.75)),
     url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f");
 
     background-size:cover;
     background-position:center;
 
     color:white;
+
+    display:flex;
+
     min-height:100vh;
 }
 
-/* NAVBAR */
-.navbar{
-    width:100%;
-    background:#111827;
-    padding:15px 40px;
+/* SIDEBAR */
 
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+.sidebar{
+    width:260px;
+    height:100vh;
 
-    position:sticky;
+    background:rgba(17,24,39,0.95);
+
+    backdrop-filter:blur(10px);
+
+    position:fixed;
+    left:0;
     top:0;
+
+    padding:30px 20px;
+
+    box-shadow:0 0 20px rgba(0,0,0,0.4);
 }
+
+/* LOGO */
 
 .logo{
-    font-size:22px;
+    font-size:28px;
     font-weight:bold;
+
+    text-align:center;
+
     color:#facc15;
+
+    margin-bottom:40px;
 }
 
-.nav-links a{
-    color:white;
-    text-decoration:none;
-    margin-left:20px;
+/* MENU */
+
+.sidebar ul{
+    list-style:none;
+}
+
+.sidebar ul li{
+
+    background:rgba(255,255,255,0.08);
+
+    padding:15px;
+
+    margin-bottom:15px;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
     transition:0.3s;
+
+    font-size:17px;
 }
 
-.nav-links a:hover{
-    color:#facc15;
+.sidebar ul li:hover{
+
+    background:#facc15;
+
+    color:black;
+
+    transform:translateX(5px);
 }
 
 /* MAIN */
-.main-container{
-    width:90%;
-    margin:auto;
-    padding:30px 0;
+
+.main-content{
+
+    margin-left:260px;
+
+    width:100%;
+
+    padding:25px;
 }
 
-h1{
-    text-align:center;
-    margin-bottom:30px;
-    font-size:45px;
-    color:#facc15;
-}
+/* ERP HEADER */
 
-/* GLASS BOX */
-.box{
-    background:rgba(255,255,255,0.1);
+.erp-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    background:rgba(255,255,255,0.08);
+
     backdrop-filter:blur(10px);
 
     padding:25px;
-    margin-bottom:30px;
 
-    border-radius:15px;
+    border-radius:20px;
+
+    margin-bottom:25px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,0.4);
+}
+
+.erp-header h1{
+
+    font-size:34px;
+
+    color:#facc15;
+
+    margin-bottom:8px;
+}
+
+.erp-header p{
+    opacity:0.8;
+}
+
+/* DATE TIME */
+
+.datetime-box{
+
+    text-align:right;
+}
+
+#liveDate{
+
+    font-size:18px;
+
+    margin-bottom:8px;
+}
+
+#liveTime{
+
+    font-size:32px;
+
+    font-weight:bold;
+
+    color:#00ffcc;
+}
+
+/* SECTIONS */
+
+.section{
+    display:none;
+}
+
+.active-section{
+    display:block;
+}
+
+/* BOX */
+
+.box{
+
+    background:rgba(255,255,255,0.1);
+
+    backdrop-filter:blur(10px);
+
+    padding:25px;
+
+    margin-bottom:25px;
+
+    border-radius:20px;
 
     box-shadow:0 8px 20px rgba(0,0,0,0.4);
 }
 
 /* HEADINGS */
+
 .box h2{
-    margin-bottom:20px;
+
     color:#facc15;
+
+    margin-bottom:20px;
 }
 
 /* INPUTS */
+
 input{
+
     width:100%;
-    padding:12px;
+
+    padding:14px;
+
     margin-bottom:15px;
 
     border:none;
-    border-radius:8px;
+
+    border-radius:10px;
 
     outline:none;
+
+    background:rgba(255,255,255,0.9);
+
+    font-size:15px;
+}
+
+/* DATE BOX */
+
+.date-box{
+
+    margin-bottom:20px;
+}
+
+.date-box label{
+
+    display:block;
+
+    margin-bottom:10px;
+
+    font-weight:bold;
 }
 
 /* BUTTON */
+
 button{
+
     width:100%;
-    padding:12px;
+
+    padding:14px;
 
     background:#facc15;
+
     color:black;
 
     border:none;
-    border-radius:8px;
+
+    border-radius:10px;
 
     cursor:pointer;
+
+    font-size:16px;
+
     font-weight:bold;
 
     transition:0.3s;
 }
 
 button:hover{
-    transform:scale(1.03);
+
+    transform:scale(1.02);
+
+    background:#fde047;
 }
 
 /* STUDENT CARD */
+
 .student-card{
+
     display:flex;
+
     justify-content:space-between;
+
     align-items:center;
+
+    gap:10px;
 
     background:rgba(255,255,255,0.1);
 
-    padding:10px;
-    border-radius:10px;
+    padding:15px;
 
-    margin-bottom:10px;
+    border-radius:12px;
+
+    margin-bottom:12px;
+}
+
+.student-card span{
+
+    font-weight:bold;
+
+    flex:1;
 }
 
 /* SELECT */
+
 select{
-    padding:8px;
-    border-radius:6px;
+
+    padding:10px;
+
+    border:none;
+
+    border-radius:8px;
+
+    outline:none;
+}
+
+/* REMOVE BUTTON */
+
+.student-card button{
+
+    width:auto;
+
+    padding:10px 15px;
+
+    background:#ef4444;
+
+    color:white;
+}
+
+.student-card button:hover{
+
+    background:#dc2626;
 }
 
 /* TABLE */
+
 table{
+
     width:100%;
+
     border-collapse:collapse;
+
     margin-top:20px;
 }
 
 table th,
 table td{
-    border:1px solid rgba(255,255,255,0.3);
-    padding:12px;
+
+    border:1px solid rgba(255,255,255,0.2);
+
+    padding:14px;
+
     text-align:center;
 }
 
 table th{
+
     background:#facc15;
+
     color:black;
 }
 
 /* CHART */
+
 canvas{
+
     background:white;
-    border-radius:10px;
+
+    border-radius:15px;
+
     padding:10px;
 }
 
 /* MOBILE */
+
 @media(max-width:768px){
 
-    .navbar{
+    body{
         flex-direction:column;
-        gap:10px;
     }
 
-    .nav-links{
-        display:flex;
-        flex-wrap:wrap;
-        justify-content:center;
+    .sidebar{
+
+        width:100%;
+
+        height:auto;
+
+        position:relative;
     }
 
-    h1{
-        font-size:30px;
+    .main-content{
+
+        margin-left:0;
+    }
+
+    .erp-header{
+
+        flex-direction:column;
+
+        gap:20px;
+
+        text-align:center;
+    }
+
+    .datetime-box{
+        text-align:center;
     }
 
     .student-card{
+
         flex-direction:column;
-        gap:10px;
     }
 }

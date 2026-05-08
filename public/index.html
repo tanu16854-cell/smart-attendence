@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Smart Attendance System</title>
+    <title>Smart ERP Attendance System</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -12,60 +12,151 @@
 
 <body>
 
-<!-- NAVBAR -->
-<div class="navbar">
-    <div class="logo">SMART ATTENDANCE SYSTEM</div>
+<!-- SIDEBAR -->
+<div class="sidebar">
 
-    <div class="nav-links">
-        <a href="#">Dashboard</a>
-        <a href="#">Students</a>
-        <a href="#">Attendance</a>
-        <a href="#">Report</a>
+    <div class="logo">
+        SMART ERP
     </div>
+
+    <ul>
+        <li onclick="showSection('dashboard')">
+            🏠 Dashboard
+        </li>
+
+        <li onclick="showSection('teacher')">
+            👨‍🏫 Teacher Panel
+        </li>
+
+        <li onclick="showSection('attendance')">
+            📅 Attendance
+        </li>
+
+        <li onclick="showSection('report')">
+            📊 Reports
+        </li>
+    </ul>
+
 </div>
 
-<!-- MAIN -->
-<div class="main-container">
+<!-- MAIN CONTENT -->
+<div class="main-content">
 
-    <h1>ATTENDANCE SYSTEM</h1>
+    <!-- HEADER -->
+    <div class="erp-header">
 
-    <!-- ADD STUDENT -->
-    <div class="box">
-        <h2>Add Student</h2>
+        <div>
+            <h1>Smart ERP Attendance System</h1>
+            <p>School / College Management Dashboard</p>
+        </div>
 
-        <input type="text" id="id" placeholder="Enter ID">
-        <input type="text" id="name" placeholder="Enter Name">
+        <div class="datetime-box">
+            <div id="liveDate"></div>
+            <div id="liveTime"></div>
+        </div>
 
-        <button onclick="addStudent()">Add Student</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="section active-section">
+
+        <!-- ADD STUDENT -->
+        <div class="box">
+
+            <h2>Add Student</h2>
+
+            <input type="text"
+                   id="id"
+                   placeholder="Enter Student ID">
+
+            <input type="text"
+                   id="name"
+                   placeholder="Enter Student Name">
+
+            <button onclick="addStudent()">
+                Add Student
+            </button>
+
+        </div>
+
+        <!-- ANALYTICS -->
+        <div class="box">
+
+            <h2>📈 Attendance Analytics</h2>
+
+            <canvas id="chart"></canvas>
+
+        </div>
+
+    </div>
+
+    <!-- TEACHER PANEL -->
+    <div id="teacher" class="section">
+
+        <div class="box">
+
+            <h2>👨‍🏫 Teacher Panel</h2>
+
+            <input type="text"
+                   placeholder="Teacher Name">
+
+            <input type="text"
+                   placeholder="Subject">
+
+            <input type="text"
+                   placeholder="Class">
+
+            <button>
+                Add Teacher
+            </button>
+
+        </div>
+
     </div>
 
     <!-- ATTENDANCE -->
-    <div class="box">
-        <h2>Mark Attendance</h2>
+    <div id="attendance" class="section">
 
-        <div id="studentList"></div>
+        <div class="box">
 
-        <button onclick="submitAttendance()">
-            Submit Attendance
-        </button>
+            <h2>📅 Monthly Attendance</h2>
+
+            <!-- DATE -->
+            <div class="date-box">
+
+                <label>Select Attendance Date</label>
+
+                <input type="date"
+                       id="attendanceDate">
+
+            </div>
+
+            <!-- STUDENT LIST -->
+            <div id="studentList"></div>
+
+            <button onclick="submitAttendance()">
+                Submit Attendance
+            </button>
+
+        </div>
+
     </div>
 
     <!-- REPORT -->
-    <div class="box">
-        <h2>Attendance Report</h2>
+    <div id="report" class="section">
 
-        <button onclick="loadReport()">
-            View Report
-        </button>
+        <div class="box">
 
-        <table id="reportTable"></table>
-    </div>
+            <h2>📊 Attendance Reports</h2>
 
-    <!-- CHART -->
-    <div class="box">
-        <h2>Analytics</h2>
+            <button onclick="loadReport()">
+                View Report
+            </button>
 
-        <canvas id="chart"></canvas>
+            <table id="reportTable"></table>
+
+        </div>
+
     </div>
 
 </div>
@@ -73,9 +164,43 @@
 <script src="script.js"></script>
 
 <script>
+
+/* LOGIN CHECK */
+
 if (!localStorage.getItem("login")) {
     window.location = "login.html";
 }
+
+/* ERP SECTION SWITCH */
+
+function showSection(id){
+
+    document.querySelectorAll(".section")
+    .forEach(sec=>{
+        sec.classList.remove("active-section");
+    });
+
+    document.getElementById(id)
+    .classList.add("active-section");
+}
+
+/* LIVE DATE & TIME */
+
+function updateDateTime(){
+
+    const now = new Date();
+
+    document.getElementById("liveDate").innerHTML =
+        now.toDateString();
+
+    document.getElementById("liveTime").innerHTML =
+        now.toLocaleTimeString();
+}
+
+setInterval(updateDateTime,1000);
+
+updateDateTime();
+
 </script>
 
 </body>
