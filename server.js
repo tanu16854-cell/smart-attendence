@@ -32,6 +32,7 @@ app.get("/", (req, res) => {
 /* ============================= */
 
 db.query(`
+
 CREATE TABLE IF NOT EXISTS students(
 
     id VARCHAR(20) PRIMARY KEY,
@@ -39,9 +40,11 @@ CREATE TABLE IF NOT EXISTS students(
     name VARCHAR(100)
 
 )
+
 `);
 
 db.query(`
+
 CREATE TABLE IF NOT EXISTS attendance(
 
     id SERIAL PRIMARY KEY,
@@ -53,6 +56,27 @@ CREATE TABLE IF NOT EXISTS attendance(
     status VARCHAR(20)
 
 )
+
+`);
+
+/* ============================= */
+/* TEACHERS TABLE */
+/* ============================= */
+
+db.query(`
+
+CREATE TABLE IF NOT EXISTS teachers(
+
+    id SERIAL PRIMARY KEY,
+
+    teacher_name VARCHAR(100),
+
+    subject VARCHAR(100),
+
+    class_name VARCHAR(100)
+
+)
+
 `);
 
 /* ============================= */
@@ -104,8 +128,6 @@ app.post("/add-student", (req, res) => {
         (err)=>{
 
             if(err){
-
-                console.log(err.message);
 
                 return res.status(500).json({
                     error:err.message
@@ -177,6 +199,116 @@ app.post("/remove-student", (req,res)=>{
 });
 
 /* ============================= */
+/* ADD TEACHER */
+/* ============================= */
+
+app.post("/add-teacher",(req,res)=>{
+
+    const {
+        teacher_name,
+        subject,
+        class_name
+    } = req.body;
+
+    if(
+        !teacher_name ||
+        !subject ||
+        !class_name
+    ){
+
+        return res.status(400).json({
+            error:"All fields required"
+        });
+    }
+
+    db.query(
+
+        `
+
+        INSERT INTO teachers
+        (teacher_name,subject,class_name)
+
+        VALUES($1,$2,$3)
+
+        `,
+
+        [
+            teacher_name,
+            subject,
+            class_name
+        ],
+
+        (err)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    error:err.message
+                });
+            }
+
+            res.json({
+                message:"Teacher Added Successfully"
+            });
+        }
+    );
+});
+
+/* ============================= */
+/* GET TEACHERS */
+/* ============================= */
+
+app.get("/teachers",(req,res)=>{
+
+    db.query(
+
+        "SELECT * FROM teachers ORDER BY id DESC",
+
+        (err,result)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    error:err.message
+                });
+            }
+
+            res.json(result.rows);
+        }
+    );
+});
+
+/* ============================= */
+/* DELETE TEACHER */
+/* ============================= */
+
+app.post("/remove-teacher",(req,res)=>{
+
+    const { id } = req.body;
+
+    db.query(
+
+        "DELETE FROM teachers WHERE id=$1",
+
+        [id],
+
+        (err)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    error:err.message
+                });
+            }
+
+            res.json({
+                message:"Teacher Removed"
+            });
+        }
+    );
+});
+
+/* ============================= */
 /* MARK ATTENDANCE */
 /* ============================= */
 
@@ -205,11 +337,8 @@ app.post("/mark-attendance", (req,res)=>{
             `,
 
             [
-
                 r.id,
-
                 r.date,
-
                 r.status
             ],
 
@@ -217,16 +346,15 @@ app.post("/mark-attendance", (req,res)=>{
 
                 if(err){
 
-                    console.log(
-                        "Attendance Error:",
-                        err.message
-                    );
+                    console.log(err.message);
                 }
             }
         );
     });
 
-    res.send("Attendance Marked Successfully");
+    res.send(
+        "Attendance Marked Successfully"
+    );
 });
 
 /* ============================= */
@@ -250,6 +378,14 @@ app.get("/report",(req,res)=>{
         ELSE 0
         END
     ) AS present,
+
+    SUM(
+        CASE
+        WHEN attendance.status='Absent'
+        THEN 1
+        ELSE 0
+        END
+    ) AS absent,
 
     COUNT(attendance.id) AS total
 

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teacher Registration</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+<div class="login-box">
+
+    <h1>Teacher Registration</h1>
+
+    <input type="text" id="teacherName" placeholder="Teacher Name">
+
+    <input type="email" id="teacherEmail" placeholder="Email">
+
+    <input type="text" id="teacherSubject" placeholder="Subject">
+
+    <input type="password" id="teacherPassword" placeholder="Password">
+
+    <button onclick="registerTeacher()">
+         Register
+    </button>
+
+</div>
+
+<script>
+
+const API = "https://smart-attendence-ek62.onrender.com";
+
+function registerTeacher(){
+
+    fetch(API + "/register-teacher",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+            teacher_name:document.getElementById("teacherName").value,
+
+            email:
+            document.getElementById("teacherEmail").value,
+
+            subject:
+            document.getElementById("teacherSubject").value,
+
+            password:
+            document.getElementById("teacherPassword").value
+        })
+    })
+
+    .then(res=>res.json())
+
+    .then(data=>{
+
+        alert(data.message);
+   window.location="login.html";
+    });
+}
+
+</script>
+
+</body>
+</html>
