@@ -337,3 +337,38 @@ window.onload = function(){
         "attendanceDate"
     ).value = today;
 };
+function loadCharts(){
+
+    fetch(API + "/report")
+    .then(res => res.json())
+    .then(data => {
+
+        let p = 0, a = 0;
+
+        data.forEach(d => {
+            p += Number(d.present);
+            a += Number(d.absent);
+        });
+
+        new Chart(document.getElementById("pieChart"), {
+            type: "pie",
+            data: {
+                labels: ["Present","Absent"],
+                datasets: [{ data:[p,a] }]
+            }
+        });
+
+        new Chart(document.getElementById("barChart"), {
+            type: "bar",
+            data: {
+                labels: data.map(d => d.name),
+                datasets: [{ data: data.map(d => d.present) }]
+            }
+        });
+
+    });
+}
+window.onload = function(){
+    loadStudents();
+    loadCharts();
+};

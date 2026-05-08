@@ -2,8 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const db = require("./db");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const app = express();
+
+const SECRET = "smart_erp_secret_key";
 
 /* ============================= */
 /* MIDDLEWARE */
@@ -12,403 +16,188 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use(express.static(
-    path.join(__dirname, "public")
-));
+app.use(express.static(path.join(__dirname, "public")));
 
 /* ============================= */
-/* ROOT ROUTE */
+/* ROOT */
 /* ============================= */
 
 app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "login.html"));
+});
 
-    res.sendFile(
-        path.join(__dirname, "public", "login.html")
+/* ============================= */
+/* TABLES */
+/* ============================= */
+
+db.query(`
+CREATE TABLE IF NOT EXISTS students(
+    id VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(100)
+);
+`);
+
+db.query(`
+CREATE TABLE IF NOT EXISTS attendance(
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(20),
+    date DATE,
+    status VARCHAR(20)
+);
+`);
+
+db.query(`
+CREATE TABLE IF NOT EXISTS teachers(
+    id SERIAL PRIMARY KEY,
+    teacher_name VARCHAR(100),
+    email VARCHAR(100),
+    password VARCHAR(200),
+    subject VARCHAR(100),
+    role VARCHAR(20) DEFAULT 'teacher'
+);
+`);
+
+/* ============================= */
+/* REGISTER TEACHER (SECURE) */
+/* ============================= */
+
+app.post("/register-teacher", async (req, res) => {
+
+    const { teacher_name, email, password, subject } = req.body;
+
+    const hash = await bcrypt.hash(password, 10);
+
+    db.query(
+        `INSERT INTO teachers (teacher_name,email,password,subject)
+         VALUES ($1,$2,$3,$4)`,
+        [teacher_name, email, hash, subject],
+        (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+
+            res.json({ message: "Teacher Registered Successfully" });
+        }
     );
 });
 
 /* ============================= */
-/* DATABASE TABLES */
-/* ============================= */
-
-db.query(`
-
-CREATE TABLE IF NOT EXISTS students(
-
-    id VARCHAR(20) PRIMARY KEY,
-
-    name VARCHAR(100)
-
-)
-
-`);
-
-db.query(`
-
-CREATE TABLE IF NOT EXISTS attendance(
-
-    id SERIAL PRIMARY KEY,
-
-    student_id VARCHAR(20),
-
-    date DATE,
-
-    status VARCHAR(20)
-
-)
-
-`);
-
-/* ============================= */
-/* TEACHERS TABLE */
-/* ============================= */
-
-db.query(`
-
-CREATE TABLE IF NOT EXISTS teachers(
-
-    id SERIAL PRIMARY KEY,
-
-    teacher_name VARCHAR(100),
-
-    subject VARCHAR(100),
-
-    class_name VARCHAR(100)
-
-)
-
-`);
-
-/* ============================= */
-/* LOGIN API */
+/* LOGIN (JWT + BCRYPT) */
 /* ============================= */
 
 app.post("/login", (req, res) => {
 
     const { username, password } = req.body;
 
-    if(
-        username === "admin" &&
-        password === "1234"
-    ){
+    db.query(
+        `SELECT * FROM teachers WHERE email=$1`,
+        [username],
+        async (err, result) => {
 
-        res.json({
-            success:true
-        });
+            if (err) return res.status(500).json({ error: err.message });
 
-    }else{
+            if (result.rows.length === 0)
+                return res.json({ success: false });
 
-        res.json({
-            success:false
-        });
-    }
+            const teacher = result.rows[0];
+
+            const match = await bcrypt.compare(password, teacher.password);
+
+            if (!match)
+                return res.json({ success: false });
+
+            const token = jwt.sign({ id: teacher.id }, SECRET, {
+                expiresIn: "2h"
+            });
+
+            res.json({
+                success: true,
+                token,
+                teacher
+            });
+        }
+    );
 });
 
 /* ============================= */
-/* ADD STUDENT */
+/* STUDENT APIs */
 /* ============================= */
 
 app.post("/add-student", (req, res) => {
 
     const { id, name } = req.body;
 
-    if(!id || !name){
-
-        return res.status(400).json({
-            error:"ID and Name required"
-        });
-    }
-
     db.query(
+        `INSERT INTO students(id,name) VALUES($1,$2)`,
+        [id, name],
+        (err) => {
+            if (err) return res.status(500).json({ error: err.message });
 
-        "INSERT INTO students(id,name) VALUES($1,$2)",
-
-        [id,name],
-
-        (err)=>{
-
-            if(err){
-
-                return res.status(500).json({
-                    error:err.message
-                });
-            }
-
-            res.json({
-                message:"Student Added Successfully"
-            });
+            res.json({ message: "Student Added" });
         }
     );
 });
-
-/* ============================= */
-/* GET STUDENTS */
-/* ============================= */
 
 app.get("/students", (req, res) => {
 
+    db.query(`SELECT * FROM students`, (err, result) => {
+
+        if (err) return res.status(500).json({ error: err.message });
+
+        res.json(result.rows);
+    });
+});
+
+app.post("/remove-student", (req, res) => {
+
     db.query(
+        `DELETE FROM students WHERE id=$1`,
+        [req.body.id],
+        (err) => {
+            if (err) return res.status(500).json({ success: false });
 
-        "SELECT * FROM students ORDER BY name",
-
-        (err,result)=>{
-
-            if(err){
-
-                return res.status(500).json({
-                    error:err.message
-                });
-            }
-
-            res.json(result.rows);
+            res.json({ success: true });
         }
     );
 });
 
 /* ============================= */
-/* REMOVE STUDENT */
+/* ATTENDANCE */
 /* ============================= */
 
-app.post("/remove-student", (req,res)=>{
-
-    const { id } = req.body;
-
-    db.query(
-
-        "DELETE FROM students WHERE id=$1",
-
-        [id],
-
-        (err)=>{
-
-            if(err){
-
-                return res.status(500).json({
-                    success:false
-                });
-            }
-
-            res.json({
-
-                success:true,
-
-                message:"Student Removed Successfully"
-            });
-        }
-    );
-});
-
-/* ============================= */
-/* ADD TEACHER */
-/* ============================= */
-
-app.post("/add-teacher",(req,res)=>{
-
-    const {
-        teacher_name,
-        subject,
-        class_name
-    } = req.body;
-
-    if(
-        !teacher_name ||
-        !subject ||
-        !class_name
-    ){
-
-        return res.status(400).json({
-            error:"All fields required"
-        });
-    }
-
-    db.query(
-
-        `
-
-        INSERT INTO teachers
-        (teacher_name,subject,class_name)
-
-        VALUES($1,$2,$3)
-
-        `,
-
-        [
-            teacher_name,
-            subject,
-            class_name
-        ],
-
-        (err)=>{
-
-            if(err){
-
-                return res.status(500).json({
-                    error:err.message
-                });
-            }
-
-            res.json({
-                message:"Teacher Added Successfully"
-            });
-        }
-    );
-});
-
-/* ============================= */
-/* GET TEACHERS */
-/* ============================= */
-
-app.get("/teachers",(req,res)=>{
-
-    db.query(
-
-        "SELECT * FROM teachers ORDER BY id DESC",
-
-        (err,result)=>{
-
-            if(err){
-
-                return res.status(500).json({
-                    error:err.message
-                });
-            }
-
-            res.json(result.rows);
-        }
-    );
-});
-
-/* ============================= */
-/* DELETE TEACHER */
-/* ============================= */
-
-app.post("/remove-teacher",(req,res)=>{
-
-    const { id } = req.body;
-
-    db.query(
-
-        "DELETE FROM teachers WHERE id=$1",
-
-        [id],
-
-        (err)=>{
-
-            if(err){
-
-                return res.status(500).json({
-                    error:err.message
-                });
-            }
-
-            res.json({
-                message:"Teacher Removed"
-            });
-        }
-    );
-});
-
-/* ============================= */
-/* MARK ATTENDANCE */
-/* ============================= */
-
-app.post("/mark-attendance", (req,res)=>{
+app.post("/mark-attendance", (req, res) => {
 
     const { records } = req.body;
 
-    if(!records){
-
-        return res.status(400).send(
-            "No Attendance Records"
-        );
-    }
-
-    records.forEach(r=>{
+    records.forEach(r => {
 
         db.query(
-
-            `
-
-            INSERT INTO attendance
-            (student_id,date,status)
-
-            VALUES($1,$2,$3)
-
-            `,
-
-            [
-                r.id,
-                r.date,
-                r.status
-            ],
-
-            (err)=>{
-
-                if(err){
-
-                    console.log(err.message);
-                }
-            }
+            `INSERT INTO attendance(student_id,date,status)
+             VALUES($1,$2,$3)`,
+            [r.id, r.date, r.status]
         );
     });
 
-    res.send(
-        "Attendance Marked Successfully"
-    );
+    res.send("Attendance Saved");
 });
 
 /* ============================= */
-/* OVERALL REPORT */
+/* REPORT */
 /* ============================= */
 
-app.get("/report",(req,res)=>{
+app.get("/report", (req, res) => {
 
-    const sql = `
+    db.query(`
+        SELECT
+        students.id,
+        students.name,
+        SUM(CASE WHEN attendance.status='Present' THEN 1 ELSE 0 END) as present,
+        SUM(CASE WHEN attendance.status='Absent' THEN 1 ELSE 0 END) as absent
+        FROM students
+        LEFT JOIN attendance
+        ON students.id=attendance.student_id
+        GROUP BY students.id
+    `, (err, result) => {
 
-    SELECT
-
-    students.id,
-
-    students.name,
-
-    SUM(
-        CASE
-        WHEN attendance.status='Present'
-        THEN 1
-        ELSE 0
-        END
-    ) AS present,
-
-    SUM(
-        CASE
-        WHEN attendance.status='Absent'
-        THEN 1
-        ELSE 0
-        END
-    ) AS absent,
-
-    COUNT(attendance.id) AS total
-
-    FROM students
-
-    LEFT JOIN attendance
-
-    ON students.id=attendance.student_id
-
-    GROUP BY students.id
-
-    ORDER BY students.name
-
-    `;
-
-    db.query(sql,(err,result)=>{
-
-        if(err){
-
-            return res.status(500).json({
-                error:err.message
-            });
-        }
+        if (err) return res.status(500).json({ error: err.message });
 
         res.json(result.rows);
     });
@@ -418,69 +207,29 @@ app.get("/report",(req,res)=>{
 /* MONTHLY REPORT */
 /* ============================= */
 
-app.get("/monthly-report/:month",(req,res)=>{
+app.get("/monthly-report/:month", (req, res) => {
 
     const month = req.params.month;
 
-    const sql = `
+    db.query(`
+        SELECT attendance.date, attendance.student_id, students.name, attendance.status
+        FROM attendance
+        JOIN students ON students.id=attendance.student_id
+        WHERE TO_CHAR(attendance.date,'YYYY-MM')=$1
+    `, [month], (err, result) => {
 
-    SELECT
+        if (err) return res.status(500).json({ error: err.message });
 
-    attendance.date,
-
-    attendance.student_id,
-
-    students.name,
-
-    attendance.status
-
-    FROM attendance
-
-    JOIN students
-
-    ON students.id =
-    attendance.student_id
-
-    WHERE TO_CHAR(
-        attendance.date,
-        'YYYY-MM'
-    ) = $1
-
-    ORDER BY attendance.date DESC
-
-    `;
-
-    db.query(
-
-        sql,
-
-        [month],
-
-        (err,result)=>{
-
-            if(err){
-
-                return res.status(500).json({
-                    error:err.message
-                });
-            }
-
-            res.json(result.rows);
-        }
-    );
+        res.json(result.rows);
+    });
 });
 
 /* ============================= */
-/* SERVER START */
+/* SERVER */
 /* ============================= */
 
-const PORT =
-process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, ()=>{
-
-    console.log(
-        "ERP Server Running On Port",
-        PORT
-    );
+app.listen(PORT, () => {
+    console.log("Server running on port", PORT);
 });
