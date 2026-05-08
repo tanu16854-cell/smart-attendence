@@ -403,3 +403,163 @@ canvas{
         flex-direction:column;
     }
 }
+/* ========================= */
+/* PREMIUM SCROLLBAR */
+/* ========================= */
+
+::-webkit-scrollbar{
+    width:10px;
+}
+
+::-webkit-scrollbar-track{
+    background:#111827;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#facc15;
+    border-radius:10px;
+}
+
+/* ========================= */
+/* LOGIN PAGE */
+/* ========================= */
+
+.login-page{
+
+    width:100%;
+
+    min-height:100vh;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+}
+
+.login-box{
+
+    width:400px;
+
+    background:rgba(255,255,255,0.12);
+
+    backdrop-filter:blur(15px);
+
+    padding:40px;
+
+    border-radius:25px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,0.5);
+
+    text-align:center;
+}
+
+.login-box h2{
+
+    color:#facc15;
+
+    margin-bottom:25px;
+
+    font-size:30px;
+}
+
+.login-box button{
+
+    margin-top:10px;
+}
+
+/* ========================= */
+/* TABLE RESPONSIVE */
+/* ========================= */
+
+.table-wrapper{
+
+    overflow-x:auto;
+}
+
+/* ========================= */
+/* STUDENT CARD ANIMATION */
+/* ========================= */
+
+.student-card{
+
+    transition:0.3s;
+}
+
+.student-card:hover{
+
+    transform:translateY(-3px);
+
+    background:rgba(255,255,255,0.18);
+}
+
+/* ========================= */
+/* SIDEBAR ACTIVE EFFECT */
+/* ========================= */
+
+.sidebar ul li.active{
+
+    background:#facc15;
+
+    color:black;
+}
+
+/* ========================= */
+/* INPUT FOCUS */
+/* ========================= */
+
+input:focus,
+select:focus{
+
+    box-shadow:0 0 10px #facc15;
+}
+
+/* ========================= */
+/* BUTTON GLOW */
+/* ========================= */
+
+button{
+
+    box-shadow:0 0 15px rgba(250,204,21,0.3);
+}
+
+/* ========================= */
+/* REPORT TABLE */
+/* ========================= */
+
+table tr:nth-child(even){
+
+    background:rgba(255,255,255,0.05);
+}
+
+/* ========================= */
+/* DATE INPUT */
+/* ========================= */
+
+input[type="date"],
+input[type="month"]{
+
+    cursor:pointer;
+}
+
+/* ========================= */
+/* SMOOTH ANIMATION */
+/* ========================= */
+
+.section{
+
+    animation:fade 0.4s ease;
+}
+
+@keyframes fade{
+
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}

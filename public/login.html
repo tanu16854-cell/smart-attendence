@@ -1,55 +1,162 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+
+    <title>Smart ERP Login</title>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
     <link rel="stylesheet" href="style.css">
+
 </head>
 
-<body>
+<body class="login-page">
 
-<button onclick="toggleTheme()">🌙 Dark Mode</button>
+<!-- LOGIN CONTAINER -->
 
-<div class="box">
-    <h2>Admin Login</h2>
+<div class="login-box">
 
-    <input id="user" placeholder="Username"><br>
-    <input id="pass" type="password" placeholder="Password"><br>
+    <div class="login-logo">
 
-    <button onclick="login()">Login</button>
+        🎓
+
+    </div>
+
+    <h1>SMART ERP</h1>
+
+    <p class="subtitle">
+        Attendance Management System
+    </p>
+
+    <!-- USERNAME -->
+
+    <input
+        type="text"
+        id="user"
+        placeholder="Enter Username"
+    >
+
+    <!-- PASSWORD -->
+
+    <input
+        type="password"
+        id="pass"
+        placeholder="Enter Password"
+    >
+
+    <!-- LOGIN BUTTON -->
+
+    <button onclick="login()">
+
+        Login To Dashboard
+
+    </button>
+
+    <!-- DEFAULT LOGIN -->
+
+    <div class="demo">
+
+        <p>
+            Username: <b>admin</b>
+        </p>
+
+        <p>
+            Password: <b>1234</b>
+        </p>
+
+    </div>
+
 </div>
 
 <script>
-const API = "https://smart-attendence-ek62.onrender.com";
 
-/* ========== LOGIN ========== */
-function login() {
+const API =
+"https://smart-attendence-ek62.onrender.com";
+
+/* ============================= */
+/* LOGIN FUNCTION */
+/* ============================= */
+
+function login(){
+
+    const username =
+    document.getElementById("user").value;
+
+    const password =
+    document.getElementById("pass").value;
+
+    if(!username || !password){
+
+        alert(
+            "Please Enter Username & Password"
+        );
+
+        return;
+    }
+
     fetch(API + "/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            username: document.getElementById("user").value,
-            password: document.getElementById("pass").value
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+            username,
+            password
         })
     })
+
     .then(res => res.json())
+
     .then(data => {
-        if (data.success) {
-            localStorage.setItem("login", "true");
-            window.location = "index.html";
-        } else {
-            alert("Wrong credentials");
+
+        if(data.success){
+
+            localStorage.setItem(
+                "login",
+                "true"
+            );
+
+            window.location =
+            "index.html";
+
+        }else{
+
+            alert(
+                "Invalid Username or Password"
+            );
         }
     })
+
     .catch(err => {
+
         console.log(err);
-        alert("Server not reachable");
+
+        alert(
+            "Server Not Reachable"
+        );
     });
 }
 
-/* ========== THEME TOGGLE ========== */
-function toggleTheme() {
-    document.body.classList.toggle("dark");
-}
+/* ============================= */
+/* ENTER KEY LOGIN */
+/* ============================= */
+
+document.addEventListener(
+    "keypress",
+    function(e){
+
+        if(e.key === "Enter"){
+
+            login();
+        }
+    }
+);
+
 </script>
 
 </body>

@@ -5,168 +5,346 @@ const db = require("./db");
 
 const app = express();
 
+/* ============================= */
+/* MIDDLEWARE */
+/* ============================= */
+
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
 
-/* ========== ROOT ROUTE ========== */
+app.use(express.static(
+    path.join(__dirname, "public")
+));
+
+/* ============================= */
+/* ROOT ROUTE */
+/* ============================= */
+
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "login.html"));
+
+    res.sendFile(
+        path.join(__dirname, "public", "login.html")
+    );
 });
 
-/* ========== SAFE TABLE INIT ========== */
+/* ============================= */
+/* DATABASE TABLES */
+/* ============================= */
+
 db.query(`
-CREATE TABLE IF NOT EXISTS students (
-    id VARCHAR(10) PRIMARY KEY,
-    name VARCHAR(50)
+CREATE TABLE IF NOT EXISTS students(
+
+    id VARCHAR(20) PRIMARY KEY,
+
+    name VARCHAR(100)
+
 )
 `);
 
 db.query(`
-CREATE TABLE IF NOT EXISTS attendance (
+CREATE TABLE IF NOT EXISTS attendance(
+
     id SERIAL PRIMARY KEY,
-    student_id VARCHAR(10),
+
+    student_id VARCHAR(20),
+
     date DATE,
-    status VARCHAR(10)
+
+    status VARCHAR(20)
+
 )
 `);
 
-/* ========== ADD STUDENT ========== */
+/* ============================= */
+/* LOGIN API */
+/* ============================= */
+
+app.post("/login", (req, res) => {
+
+    const { username, password } = req.body;
+
+    if(
+        username === "admin" &&
+        password === "1234"
+    ){
+
+        res.json({
+            success:true
+        });
+
+    }else{
+
+        res.json({
+            success:false
+        });
+    }
+});
+
+/* ============================= */
+/* ADD STUDENT */
+/* ============================= */
+
 app.post("/add-student", (req, res) => {
+
     const { id, name } = req.body;
 
-    if (!id || !name) {
-        return res.status(400).json({ error: "ID and Name required" });
+    if(!id || !name){
+
+        return res.status(400).json({
+            error:"ID and Name required"
+        });
     }
 
     db.query(
-        "INSERT INTO students (id, name) VALUES ($1, $2)",
-        [id, name],
-        (err) => {
-            if (err) {
-                console.log("ADD ERROR:", err.message);
-                return res.status(500).json({ error: err.message });
+
+        "INSERT INTO students(id,name) VALUES($1,$2)",
+
+        [id,name],
+
+        (err)=>{
+
+            if(err){
+
+                console.log(err.message);
+
+                return res.status(500).json({
+                    error:err.message
+                });
             }
 
-            res.json({ message: "Student Added Successfully" });
+            res.json({
+                message:"Student Added Successfully"
+            });
         }
     );
 });
 
-/* ========== GET STUDENTS ========== */
+/* ============================= */
+/* GET STUDENTS */
+/* ============================= */
+
 app.get("/students", (req, res) => {
-    db.query("SELECT * FROM students", (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(result.rows);
-    });
+
+    db.query(
+
+        "SELECT * FROM students ORDER BY name",
+
+        (err,result)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    error:err.message
+                });
+            }
+
+            res.json(result.rows);
+        }
+    );
 });
 
-/* ========== REMOVE STUDENT ========== */
-app.post("/remove-student", (req, res) => {
+/* ============================= */
+/* REMOVE STUDENT */
+/* ============================= */
+
+app.post("/remove-student", (req,res)=>{
+
     const { id } = req.body;
 
-    db.query("DELETE FROM students WHERE id = $1", [id], (err) => {
-        if (err) {
-            console.log(err.message);
-            return res.status(500).json({ success: false });
-        }
+    db.query(
 
-        res.json({
-            success: true,
-            message: "Student Removed!"
-        });
-    });
+        "DELETE FROM students WHERE id=$1",
+
+        [id],
+
+        (err)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    success:false
+                });
+            }
+
+            res.json({
+
+                success:true,
+
+                message:"Student Removed Successfully"
+            });
+        }
+    );
 });
 
-/* ========== MARK ATTENDANCE ========== */
-app.post("/mark-attendance", (req, res) => {
+/* ============================= */
+/* MARK ATTENDANCE */
+/* ============================= */
+
+app.post("/mark-attendance", (req,res)=>{
+
     const { records } = req.body;
 
-    if (!records) return res.status(400).send("No records");
+    if(!records){
 
-    records.forEach(r => {
+        return res.status(400).send(
+            "No Attendance Records"
+        );
+    }
+
+    records.forEach(r=>{
+
         db.query(
-            "INSERT INTO attendance (student_id, date, status) VALUES ($1, CURRENT_DATE, $2)",
-            [r.id, r.status],
-            (err) => {
-                if (err) console.log("ATTENDANCE ERROR:", err.message);
+
+            `
+
+            INSERT INTO attendance
+            (student_id,date,status)
+
+            VALUES($1,$2,$3)
+
+            `,
+
+            [
+
+                r.id,
+
+                r.date,
+
+                r.status
+            ],
+
+            (err)=>{
+
+                if(err){
+
+                    console.log(
+                        "Attendance Error:",
+                        err.message
+                    );
+                }
             }
         );
     });
 
-    res.send("Attendance Marked!");
+    res.send("Attendance Marked Successfully");
 });
 
-/* ========== REPORT ========== */
-app.get("/report", (req, res) => {
+/* ============================= */
+/* OVERALL REPORT */
+/* ============================= */
+
+app.get("/report",(req,res)=>{
+
     const sql = `
-        SELECT s.id, s.name,
-        SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) AS present,
-        COUNT(a.id) AS total
-        FROM students s
-        LEFT JOIN attendance a ON s.id=a.student_id
-        GROUP BY s.id
+
+    SELECT
+
+    students.id,
+
+    students.name,
+
+    SUM(
+        CASE
+        WHEN attendance.status='Present'
+        THEN 1
+        ELSE 0
+        END
+    ) AS present,
+
+    COUNT(attendance.id) AS total
+
+    FROM students
+
+    LEFT JOIN attendance
+
+    ON students.id=attendance.student_id
+
+    GROUP BY students.id
+
+    ORDER BY students.name
+
     `;
 
-    db.query(sql, (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
+    db.query(sql,(err,result)=>{
+
+        if(err){
+
+            return res.status(500).json({
+                error:err.message
+            });
+        }
+
         res.json(result.rows);
     });
 });
 
-/* ========== LOGIN ========== */
-app.post("/login", (req, res) => {
-    const { username, password } = req.body;
+/* ============================= */
+/* MONTHLY REPORT */
+/* ============================= */
 
-    if (username === "admin" && password === "1234") {
-        res.json({ success: true });
-    } else {
-        res.json({ success: false });
-    }
-});
-
-/* ========== SERVER START ========== */
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log("Server running on port", PORT);
-});
-/* ========== MONTHLY REPORT ========== */
-
-app.get("/monthly-report/:month", (req, res) => {
+app.get("/monthly-report/:month",(req,res)=>{
 
     const month = req.params.month;
 
     const sql = `
 
     SELECT
+
     attendance.date,
+
     attendance.student_id,
+
     students.name,
+
     attendance.status
 
     FROM attendance
 
     JOIN students
-    ON students.id = attendance.student_id
 
-    WHERE TO_CHAR(attendance.date, 'YYYY-MM') = $1
+    ON students.id =
+    attendance.student_id
+
+    WHERE TO_CHAR(
+        attendance.date,
+        'YYYY-MM'
+    ) = $1
 
     ORDER BY attendance.date DESC
 
     `;
 
-    db.query(sql, [month], (err, result) => {
+    db.query(
 
-        if(err){
+        sql,
 
-            console.log(err);
+        [month],
 
-            return res.status(500).json({
-                error: err.message
-            });
+        (err,result)=>{
+
+            if(err){
+
+                return res.status(500).json({
+                    error:err.message
+                });
+            }
+
+            res.json(result.rows);
         }
+    );
+});
 
-        res.json(result.rows);
-    });
+/* ============================= */
+/* SERVER START */
+/* ============================= */
+
+const PORT =
+process.env.PORT || 3000;
+
+app.listen(PORT, ()=>{
+
+    console.log(
+        "ERP Server Running On Port",
+        PORT
+    );
 });
