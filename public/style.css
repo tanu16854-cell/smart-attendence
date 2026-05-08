@@ -1,120 +1,189 @@
-/* Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* RESET */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
 
-/* Background */
-body {
+/* BODY */
+body{
     font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    text-align: center;
-    color: white;
+
+    background:
+    linear-gradient(rgba(0,0,0,0.7),
+    rgba(0,0,0,0.7)),
+    url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f");
+
+    background-size:cover;
+    background-position:center;
+
+    color:white;
+    min-height:100vh;
 }
 
-/* Heading */
-h1 {
-    margin-top: 20px;
+/* NAVBAR */
+.navbar{
+    width:100%;
+    background:#111827;
+    padding:15px 40px;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    position:sticky;
+    top:0;
 }
 
-/* Glass box */
-.box {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 20px;
-    margin: 20px auto;
-    width: 320px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+.logo{
+    font-size:22px;
+    font-weight:bold;
+    color:#facc15;
 }
 
-/* Inputs */
-input {
-    margin: 8px 0;
-    padding: 10px;
-    width: 90%;
-    border-radius: 8px;
-    border: none;
-    outline: none;
+.nav-links a{
+    color:white;
+    text-decoration:none;
+    margin-left:20px;
+    transition:0.3s;
 }
 
-/* Buttons */
-button {
-    padding: 10px;
-    margin-top: 10px;
-    width: 100%;
-    background: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
+.nav-links a:hover{
+    color:#facc15;
 }
 
-button:hover {
-    background: #45a049;
+/* MAIN */
+.main-container{
+    width:90%;
+    margin:auto;
+    padding:30px 0;
 }
 
-/* Table */
-table {
-    width: 100%;
-    margin-top: 10px;
-    border-collapse: collapse;
-    color: white;
+h1{
+    text-align:center;
+    margin-bottom:30px;
+    font-size:45px;
+    color:#facc15;
 }
 
-table, th, td {
-    border: 1px solid white;
-    padding: 8px;
+/* GLASS BOX */
+.box{
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(10px);
+
+    padding:25px;
+    margin-bottom:30px;
+
+    border-radius:15px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,0.4);
 }
 
-/* Dropdown */
-select {
-    margin-left: 10px;
-    padding: 5px;
-    border-radius: 5px;
+/* HEADINGS */
+.box h2{
+    margin-bottom:20px;
+    color:#facc15;
 }
 
-/* Mobile Responsive */
-@media (max-width: 600px) {
-    .box {
-        width: 90%;
+/* INPUTS */
+input{
+    width:100%;
+    padding:12px;
+    margin-bottom:15px;
+
+    border:none;
+    border-radius:8px;
+
+    outline:none;
+}
+
+/* BUTTON */
+button{
+    width:100%;
+    padding:12px;
+
+    background:#facc15;
+    color:black;
+
+    border:none;
+    border-radius:8px;
+
+    cursor:pointer;
+    font-weight:bold;
+
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.03);
+}
+
+/* STUDENT CARD */
+.student-card{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    background:rgba(255,255,255,0.1);
+
+    padding:10px;
+    border-radius:10px;
+
+    margin-bottom:10px;
+}
+
+/* SELECT */
+select{
+    padding:8px;
+    border-radius:6px;
+}
+
+/* TABLE */
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+table th,
+table td{
+    border:1px solid rgba(255,255,255,0.3);
+    padding:12px;
+    text-align:center;
+}
+
+table th{
+    background:#facc15;
+    color:black;
+}
+
+/* CHART */
+canvas{
+    background:white;
+    border-radius:10px;
+    padding:10px;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+    .navbar{
+        flex-direction:column;
+        gap:10px;
     }
-}
-.student-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 10px 0;
-    padding: 10px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 10px;
-}
 
-.student-card button {
-    background: red;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-body.dark {
-    background: linear-gradient(135deg, #141E30, #243B55);
-    color: white;
-}
+    .nav-links{
+        display:flex;
+        flex-wrap:wrap;
+        justify-content:center;
+    }
 
-.dark .box {
-    background: rgba(0,0,0,0.4);
-}
+    h1{
+        font-size:30px;
+    }
 
-.dark button {
-    background: #00c6ff;
-}
-
-.dark table,
-.dark th,
-.dark td {
-    border-color: white;
+    .student-card{
+        flex-direction:column;
+        gap:10px;
+    }
 }
