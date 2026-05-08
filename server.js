@@ -90,7 +90,7 @@ app.post("/login", (req, res) => {
     db.query(
         `SELECT * FROM teachers WHERE email=$1`,
         [username],
-        async (err, result) => {
+        (err, result) => {
 
             if (err) return res.status(500).json({ error: err.message });
 
@@ -99,18 +99,13 @@ app.post("/login", (req, res) => {
 
             const teacher = result.rows[0];
 
-            const match = await bcrypt.compare(password, teacher.password);
-
-            if (!match)
+            // TEMP: plain password check
+            if (teacher.password !== password) {
                 return res.json({ success: false });
-
-            const token = jwt.sign({ id: teacher.id }, SECRET, {
-                expiresIn: "2h"
-            });
+            }
 
             res.json({
                 success: true,
-                token,
                 teacher
             });
         }
